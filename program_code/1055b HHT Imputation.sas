@@ -1,9 +1,4 @@
 
-/* 2: 5-year release,1: 1-year release */
-/* summary_level: '050' county, '140' - census tract */
-
-/* summary_level_id 2: county, 3: ct */
-
 proc sql;
 CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;database=census") ;
 
@@ -120,21 +115,6 @@ F3 family household with female householder, no hisband
 N1 nonfamily household, householder living alone
 N2 nonfamily household, householder not living alone
 */
-
-
-/*
-proc sql;
-CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
-
-create table subj_1 as select *
-from connection to odbc
-(select * FROM [census].[acs].[dim_subject_table] where yr=2016 and release_type_id=2)
-where find(upcase(universe),"HOUSEHOLDS")>0;
-
-disconnect from odbc;
-quit;
-*/
-
 
 proc sql;
 create table p_h_1 as select x.yr,x.serialno,x.hh_size,x.h_type
@@ -272,12 +252,6 @@ inner join config_1b as y on x.yr=y.yr and x.serialno=y.serialno and y.m=0 and x
 order by yr,serialno;
 quit;
 
-/*
-proc sql;
-create table test_01 as select * from p_hm_1 where yr=2015 and serialno="978470";
-quit;
-*/
-
 /* exclude hh that cannot be mcf yet are coded as mcf */
 proc sql;
 create table config_1d as select x.*
@@ -311,9 +285,6 @@ run;
 proc sort data=config_2a;by yr serialno hh_age8 hh_sex hh_size can_be_mcf h_type _name_;run;
 
 proc transpose data=config_2a out=config_2b(drop=_name_);by yr serialno hh_age8 hh_sex hh_size can_be_mcf h_type;var col1;id _name_;run;
-
-
-
 
 proc sql;
 create table config_A_3 as select hh_age8,hh_sex,hh_size,can_be_mcf
@@ -376,7 +347,6 @@ group by hh_age8,hh_sex,can_be_mcf
 ,F0018,F1924,F2534,F3544,F4554,F5564,F6574,F7599
 ,M0018,M1924,M2534,M3544,M4554,M5564,M6574,M7599;
 quit;
-
 
 /* horizontal config */
 data config_A_3a;set config_A_3a;config_id_a=_n_;run;
@@ -442,8 +412,6 @@ create table config_B_id_1 as select config_id_b,hh_age8,hh_sex,can_be_mcf,strip
 from config_B_3b where col1>0 order by config_id_b;
 quit;
 
-
-
 data config_A_id_2;set config_A_id_1;by config_id_a;
 length age8_string age8_count_string $100;
 retain age8_string age8_count_string;
@@ -482,7 +450,7 @@ create table config_A_rates_1 as select x.config_id_a,y.hh_age8,y.hh_sex,y.hh_si
 ,y.age8_string,y.age8_count_string
 from (select config_id_a,h_type,hh,hh/sum(hh) as prob from config_a_4 group by config_id_a) as x
 inner join config_A_id_3 as y on x.config_id_a=y.config_id_a
-order by config_id_a,ranuni(2017);
+order by config_id_a,ranuni(&by1 - 1);
 
 /* household configuration is based on bin (age8/sex) and presense of members in each bin */
 create table config_B_rates_1 as select x.config_id_b,y.hh_age8,y.hh_sex,y.can_be_mcf
@@ -490,7 +458,7 @@ create table config_B_rates_1 as select x.config_id_b,y.hh_age8,y.hh_sex,y.can_b
 ,y.age8_string
 from (select config_id_b,h_type,hh,hh/sum(hh) as prob from config_B_4 group by config_id_b) as x
 inner join config_B_id_3 as y on x.config_id_b=y.config_id_b
-order by config_id_b,ranuni(2018);
+order by config_id_b,ranuni(&by1);
 quit;
 
 data config_A_rates_2;set config_A_rates_1;by config_id_a;retain p1 p2;
@@ -511,12 +479,12 @@ from config_1e;
 create table type3_rates_1 as select *,n/sum(n) as prob,sum(n) as hh_c
 from (select hh_age8,hh_sex,hh_size,can_be_mcf,h_type,count(*) as n from type_rates_0 group by hh_age8,hh_sex,hh_size,can_be_mcf,h_type)
 group by hh_age8,hh_sex,hh_size,can_be_mcf
-order by hh_age8,hh_sex,hh_size,can_be_mcf,ranuni(2019);
+order by hh_age8,hh_sex,hh_size,can_be_mcf,ranuni(&by1 + 1);
 
 create table type2_rates_1 as select *,n/sum(n) as prob,sum(n) as hh_d
 from (select hh_age8,hh_sex,can_be_mcf,h_type,count(*) as n from type_rates_0 group by hh_age8,hh_sex,can_be_mcf,h_type)
 group by hh_age8,hh_sex,can_be_mcf
-order by hh_age8,hh_sex,can_be_mcf,ranuni(2020);
+order by hh_age8,hh_sex,can_be_mcf,ranuni(&by1 + 2);
 quit;
 
 data type3_rates_2;set type3_rates_1;by hh_age8 hh_sex hh_size can_be_mcf;retain p1 p2;
@@ -529,7 +497,6 @@ if first.can_be_mcf then do;p1 = 0;p2 = prob;end;
 else do;p1 = p2;p2 = p1 + prob;end;
 run;
 
-
 /*
 h_type: 
 F1 married couple family
@@ -538,7 +505,6 @@ F3 family household with female householder, no hisband
 N1 nonfamily household, householder living alone
 N2 nonfamily household, householder not living alone
 */
-
 
 proc sql;
 create table test_A_02 as select * from config_A_rates_1
@@ -706,14 +672,13 @@ left join est_config_B_2 as y on x.yr=y.yr and x.hh_id=y.hh_id;
 quit;
 
 
-
 proc sql;
 create table est_config_4 as select x.*
 ,y1.h_type as h_type_a
 ,y2.h_type as h_type_b
 ,y3.hh_c,y3.h_type as h_type_c
 ,y4.hh_d,y4.h_type as h_type_d
-from (select *,ranuni(2021) as rn from est_config_3) as x
+from (select *,ranuni(&by1 + 3) as rn from est_config_3) as x
 left join config_a_rates_2 as y1 on x.config_id_a=y1.config_id_a and y1.p1<=x.rn<=y1.p2
 left join config_b_rates_2 as y2 on x.config_id_b=y2.config_id_b and y2.p1<=x.rn<=y2.p2
 left join type3_rates_2 as y3 on x.hh_age8=y3.hh_age8 and x.hh_sex=y3.hh_sex and x.hh_size=y3.hh_size and x.can_be_mcf=y3.can_be_mcf
@@ -829,9 +794,6 @@ where s_est < min(s1_acs_5,s2_acs_5,s3_acs_5) or s_est > max(s1_acs_5,s2_acs_5,s
 order by d_5 desc;
 quit;
 
-
-
-
 /*
 HHT
 Household/family type:
@@ -853,8 +815,6 @@ F3 family household with female householder, no hisband
 	N1 nonfamily household, householder living alone
 N2 nonfamily household, householder not living alone
 */
-
-
 
 proc sql;
 create table est_hh_ct_1 as select yr,ct,count(hh_id) as hh
@@ -939,7 +899,7 @@ quit;
 proc sql;
 create table est_config_8a as select * from est_config_8
 where f1>0
-order by yr,ct,f1 desc,ranuni(4000);
+order by yr,ct,f1 desc,ranuni(&by1 + 4);
 quit;
 
 data est_config_8a;set est_config_8a;by yr ct;retain i;
@@ -959,7 +919,7 @@ create table est_config_8b as select x.*
 from est_config_8 as x
 left join est_config_8a_ as y on x.yr=y.yr and x.hh_id=y.hh_id
 where x.f2>0 and y.hh_id=.
-order by yr,ct,f2 desc,ranuni(5000);
+order by yr,ct,f2 desc,ranuni(&by1 + 5);
 quit;
 
 data est_config_8b;set est_config_8b;by yr ct;retain i;
@@ -979,7 +939,7 @@ from est_config_8 as x
 left join est_config_8a_ as y on x.yr=y.yr and x.hh_id=y.hh_id
 left join est_config_8b_ as z on x.yr=z.yr and x.hh_id=z.hh_id
 where x.f3>0 and y.hh_id=. and z.hh_id=.
-order by yr,ct,f3 desc,ranuni(6000);
+order by yr,ct,f3 desc,ranuni(&by1 + 6);
 quit;
 
 data est_config_8c;set est_config_8c;by yr ct;retain i;
@@ -1001,7 +961,7 @@ left join est_config_8a_ as y on x.yr=y.yr and x.hh_id=y.hh_id
 left join est_config_8b_ as z on x.yr=z.yr and x.hh_id=z.hh_id
 left join est_config_8c_ as w on x.yr=w.yr and x.hh_id=w.hh_id
 where x.n2>0 and y.hh_id=. and z.hh_id=. and w.hh_id=.
-order by yr,ct,n2 desc,ranuni(7000);
+order by yr,ct,n2 desc,ranuni(&by1 + 7);
 quit;
 
 data est_config_8d;set est_config_8d;by yr ct;retain i;
@@ -1038,34 +998,34 @@ create table ztest_01 as select y.est_yr,y.ct,y.h_type
 ,x.hh
 ,x1.F1_avl,x2.F2_avl,x3.F3_avl,x4.N2_avl
 
-from (select * from B11001_ct5_5 where /*est_yr=2010 and*/ ct="005300") as y
+from (select * from B11001_ct5_5 where ct="005300") as y
 
-left join (select yr,ct,h_type,count(hh_id) as hh from est_config_9 where /*yr=2010 and*/ ct="005300" group by yr,ct,h_type) as x
+left join (select yr,ct,h_type,count(hh_id) as hh from est_config_9 where ct="005300" group by yr,ct,h_type) as x
 on x.yr=y.est_yr and x.ct=y.ct and x.h_type=y.h_type
 
 left join (select yr,ct,"F1" as h_type,count(hh_id) as F1_avl
-	from est_config_9 where h_type="" and F1>0 and /*yr=2010 and*/ ct="005300" group by yr,ct,h_type) as x1
+	from est_config_9 where h_type="" and F1>0 and ct="005300" group by yr,ct,h_type) as x1
 	on y.est_yr=x1.yr and y.ct=x1.ct and y.h_type=x1.h_type
 
 left join (select yr,ct,"F2" as h_type,count(hh_id) as F2_avl
-	from est_config_9 where h_type="" and F2>0 and /*yr=2010 and*/ ct="005300" group by yr,ct,h_type) as x2
+	from est_config_9 where h_type="" and F2>0 and ct="005300" group by yr,ct,h_type) as x2
 	on y.est_yr=x2.yr and y.ct=x2.ct and y.h_type=x2.h_type
 
 left join (select yr,ct,"F3" as h_type,count(hh_id) as F3_avl
-	from est_config_9 where h_type="" and F3>0 and /*yr=2010 and*/ ct="005300" group by yr,ct,h_type) as x3
+	from est_config_9 where h_type="" and F3>0 and ct="005300" group by yr,ct,h_type) as x3
 	on y.est_yr=x3.yr and y.ct=x3.ct and y.h_type=x3.h_type
 
 left join (select yr,ct,"N2" as h_type,count(hh_id) as N2_avl
-	from est_config_9 where h_type="" and N2>0 and /*yr=2010 and*/ ct="005300" group by yr,ct,h_type) as x4
+	from est_config_9 where h_type="" and N2>0 and ct="005300" group by yr,ct,h_type) as x4
 	on y.est_yr=x4.yr and y.ct=x4.ct and y.h_type=x4.h_type
 
-left join (select * from est_hh_ct_3 where /*yr=2010 and*/ ct=ct="005300") as z
+left join (select * from est_hh_ct_3 where ct="005300") as z
 	on y.est_yr=z.yr and y.ct=z.ct and y.h_type=z.h_type
 ;
 quit;
 
 proc sql;
-create table ztest_02 as select * from est_config_9 where /*yr=2010 and*/ ct="005300" and h_type="";
+create table ztest_02 as select * from est_config_9 where ct="005300" and h_type="";
 quit;
 
 
@@ -1095,7 +1055,7 @@ else do;p1=p2;p2=p2+prob;end;
 run;
 
 proc sql;
-create table est_config_9d as select x.*,ranuni(2000) as rn
+create table est_config_9d as select x.*,ranuni(&by1 + 8) as rn
 from (select distinct yr,ct,hh_id from est_config_9c) as x;
 
 create table est_config_9e as select x.yr,x.ct,x.hh_id,y.h_type
@@ -1138,7 +1098,7 @@ create table est_config_10_ct_1 as select x.*
 ,y.s1_acs as s1_acs_5,y.s2_acs as s2_acs_5,y.s3_acs as s3_acs_5
 ,min(abs(x.s_est - y.s1_acs),abs(x.s_est - y.s2_acs),abs(x.s_est - y.s3_acs)) as d_5 format=percent8.2
 from est_config_10_ct as x
-left join B11001_ct5_3 as y on /*x.yr=y.est_yr and*/ x.ct=y.ct and x.h_type=y.h_type
+left join B11001_ct5_3 as y on x.ct=y.ct and x.h_type=y.h_type
 order by d_5 desc;
 
 create table est_config_10_cn_1 as select x.*
@@ -1147,8 +1107,8 @@ create table est_config_10_cn_1 as select x.*
 ,min(abs(x.s_est - y.s1_acs),abs(x.s_est - y.s2_acs),abs(x.s_est - y.s3_acs)) as d_1 format=percent8.2
 ,min(abs(x.s_est - z.s1_acs),abs(x.s_est - z.s2_acs),abs(x.s_est - z.s3_acs)) as d_5 format=percent8.2
 from est_config_10_cn as x
-left join B11001_cn1_3 as y on /*x.yr=y.est_yr and*/ x.h_type=y.h_type
-left join B11001_cn5_3 as z on /*x.yr=z.est_yr and*/ x.h_type=z.h_type
+left join B11001_cn1_3 as y on x.h_type=y.h_type
+left join B11001_cn5_3 as z on x.h_type=z.h_type
 order by d_1 desc;
 quit;
 
@@ -1166,7 +1126,6 @@ from est_config_10
 	union all
 select yr,ct,hh_id,hh_sex,hh_size,h_type,hht from est_hh_single;
 quit;
-
 
 /* 2 methods were tested
 
@@ -1189,7 +1148,7 @@ group by yr;
 
 create table method_1_test_2 as select x.*,y.s1_acs as s1_acs_1,abs(x.s_est - y.s1_acs) as d
 from method_1_test_1 as x
-left join B11001_cn1_3 as y on /*x.yr=y.est_yr and*/ x.h_type=y.h_type
+left join B11001_cn1_3 as y on x.h_type=y.h_type
 order by d desc;
 
 create table method_1_test_3 as select yr,sum(d) as d
@@ -1204,7 +1163,7 @@ group by yr;
 
 create table method_2_test_2 as select x.*,y.s1_acs as s1_acs_1,abs(x.s_est - y.s1_acs) as d
 from method_2_test_1 as x
-left join B11001_cn1_3 as y on /*x.yr=y.est_yr and*/ x.h_type=y.h_type
+left join B11001_cn1_3 as y on x.h_type=y.h_type
 order by d desc;
 
 create table method_2_test_3 as select yr,sum(d) as d
@@ -1224,6 +1183,4 @@ create table method_12_test_3 as select yr
 ,sum(d1) as d1 format=percent8.1,sum(d2) as d2 format=percent8.1
 from method_12_test_2 group by yr;
 quit;
-
-
 

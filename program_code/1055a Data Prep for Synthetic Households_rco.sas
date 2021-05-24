@@ -12,17 +12,17 @@ CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection
 create table &name._cn1_0 as select *
 from connection to odbc
 (select yr,line_number,line_desc,estimate,moe from census.acs.vw_summary_file
-where yr=&acs_yr and release_type='1Y' and summary_level='050' and st='06' and county='073' and subject_table = %Unquote(%bquote(')&name%bquote(')) );
+where yr=2018 and release_type='1Y' and summary_level='050' and st='06' and county='073' and subject_table = %Unquote(%bquote(')&name%bquote(')) );
 
 create table &name._cn5_0 as select *
 from connection to odbc
 (select yr,line_number,line_desc,estimate,moe from census.acs.vw_summary_file
-where yr=&acs_yr and release_type='5Y' and summary_level='050' and st='06' and county='073' and subject_table = %Unquote(%bquote(')&name%bquote(')) );
+where yr=2018 and release_type='5Y' and summary_level='050' and st='06' and county='073' and subject_table = %Unquote(%bquote(')&name%bquote(')) );
 
 create table &name._ct5_0 as select *
 from connection to odbc
 (select yr,tract as ct,line_number,line_desc,estimate,moe from census.acs.vw_summary_file
-where yr=&acs_yr and release_type='5Y' and summary_level='140' and county='073' and subject_table = %Unquote(%bquote(')&name%bquote(')) );
+where yr=2018 and release_type='5Y' and summary_level='140' and county='073' and subject_table = %Unquote(%bquote(')&name%bquote(')) );
 
 disconnect from odbc;
 quit;

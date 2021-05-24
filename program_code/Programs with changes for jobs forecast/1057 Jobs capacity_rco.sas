@@ -31,7 +31,7 @@ select
 x.parcel_id,x.shape.STArea() as parcel_area,x.mgra_id as mgra_p,x.block_id as blk_p,x.jurisdiction_id as jur_p
 ,case when v.parcel_id>0 then 1 else 0 end as hu_urb
 FROM urbansim.urbansim.parcel as x
-inner join (select distinct parcelid_2015 as parcel_id from [urbansim].[urbansim].[employment_capacity]) as u on x.parcel_id=u.parcel_id /*changed table reference*/
+inner join (select distinct parcelid_2015 as parcel_id from [urbansim].[urbansim].[employment_capacity_scs]) as u on x.parcel_id=u.parcel_id /*changed table reference*/
 left join (select distinct parcel_id from [urbansim].[urbansim].[urbansim_lite_output] where run_id=&usver) as v on x.parcel_id=v.parcel_id 
 );
 
@@ -120,8 +120,8 @@ left join [urbansim].[urbansim].[general_plan_parcel] as y on x.parcel_id=y.parc
 create table jcap_1 as select *
 from connection to odbc
 (
-select parcelid_2015,emp_2012 as j_2012,cap_emp_civ as jcap
-FROM [urbansim].[urbansim].[employment_capacity] /*changed table reference*/
+select parcelid_2015,mgra,emp_2012 as j_2012,cap_emp_civ as jcap, cap_emp_civ2 as jcap2
+FROM [urbansim].[urbansim].[employment_capacity_scs] /*changed table reference*/
 );
 
 create table lu_names as select *
@@ -310,6 +310,24 @@ jur_id=int(jur_&by1/100);
 if jur_id in (14,19) then cpa_id=jur_&by1; else cpa_id=0;
 run;
 
+
+proc sql;
+CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
+
+create table mohub_mgra as select mgra, mohub
+from connection to odbc
+(select * from urbansim.ref.scs_mgra_xref); /*changed to include the mohub mgras*/
+disconnect from odbc;
+quit;
+
+proc sql; 
+create table mohub_mgra2 as 
+select mgra, mohub from mohub_mgra
+where mohub IS NOT NULL
+order by mgra; 
+quit; 
+
+
 proc sql;
 create table bsj_2016_1 as select
 coalesce(x.building_id,y.building_id) as building_id
@@ -331,7 +349,10 @@ create table bsj_2016_1c as select distinct sector_id_1 from bsj_2016_1b;
 
 create table bsj_2016_2 as select parcel_id, mgra, jur_id, cpa_id
 ,sector_id_1,sum(js - j_2016) as avl_js /* available jobs slots */
-from bsj_2016_1 where js - j_2016 > 0 group by parcel_id, mgra, jur_id, cpa_id, sector_id_1;
+from bsj_2016_1 where js - j_2016 > 0 and mgra in(select mgra from mohub_mgra2)/*changed to include the mohub mgras*/
+group by parcel_id, mgra, jur_id, cpa_id, sector_id_1;
+
+update bsj_2016_2 set avl_js = round(avl_js *1.25,1); /*changed to increase job vacancy on current job spaces by 25%*/
 
 create table bsj_2016_2a as select sector_id_1,sum(avl_js) as avl_js
 from bsj_2016_2 group by sector_id_1;
@@ -421,31 +442,44 @@ CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection
 create table dev_j_0 as select *
 from connection to odbc
 (
-SELECT x.siteid,year(coalesce(x.compdate_imputed,x.compdate)) as yr
+SELECT x.siteid,x.compdate as yr
 ,y.[parcel_id],y.[civemp_imputed] as j,y.[sector_id]
 ,z.mgra,z.jur_&by1
 ,y.shape.STIntersection(z.shape).STArea() as area
-FROM [urbansim].[ref].[scheduled_development_site] as x
-inner join [urbansim].[urbansim].[scheduled_development_parcel] as y on x.siteid=y.site_id
+FROM [urbansim].[ref].[non_res_sched_dev_sites_scs] as x
+inner join [urbansim].[urbansim].[non_res_sched_dev_parcel_scs_2] as y on x.siteid=y.site_id
 LEFT JOIN [estimates].[dbo].[BLK2010_JUR_POST2010] as z on y.shape.STIntersects(z.shape) = 1
-where y.civemp_imputed >0 and x.civemp_imputed >0
+where y.civemp_imputed >0 and x.civemp >0
 )
 order by siteid,parcel_id,mgra,yr,sector_id ,area desc;
 
 disconnect from odbc;
 
-/*update dev_j_0 set sector_id = 7 where sector_id = . and siteid in (19020,19021);*/
-insert into dev_j_0 set siteid = 19100, yr = 2016, parcel_id = 668489, j = 1000, sector_id = 7, mgra = 22520, jur_2018 = 1900, area = 0; /*updated to include Jamul, which isnt in input*/
-
-/*update dev_j_0 set mgra = 22520 where siteid = 19100; */
-/*update dev_j_0 set jur_2018 = 1900 where siteid = 19100;*/
-
-update dev_j_0 set sector_id = 17 where sector_id = . and siteid in(19000,19001); 
+update dev_j_0 set sector_id = 17 where sector_id = . and siteid in (19000,19001);
 
 update dev_j_0 set yr = 2022 where yr = . and siteid in (4014);
 quit;
 
-data dev_j_1(drop=jur_&by1 area);set dev_j_0;by siteid parcel_id mgra yr sector_id;
+proc sort data = dev_j_0; by siteid parcel_id descending area mgra yr sector_id;run; 
+
+data dev_j_0a; 
+set dev_j_0; 
+by siteid parcel_id descending area mgra yr sector_id; 
+if first.parcel_id then count = 0; 
+count + 1; 
+run; 
+
+proc sql; 
+create table dev_j_0b as 
+select siteid, yr, parcel_id, j, sector_id, mgra, jur_2018, area
+from dev_j_0a 
+where (count = 1 and siteid <> 19020) or (count in(1,2,3,4) and siteid = 19020)
+order by siteid, parcel_id, mgra; 
+quit; 
+
+proc sort data = dev_j_0b; by siteid parcel_id mgra yr sector_id;run; 
+
+data dev_j_1(drop=jur_&by1 area);set dev_j_0b;by siteid parcel_id mgra yr sector_id;
 if first.sector_id;
 jur_id=int(jur_&by1/100);
 if jur_id in (14,19) then cpa_id=jur_&by1; else cpa_id=0;
@@ -551,14 +585,14 @@ quit;
 
 
 proc sql;
-create table jcap_2 as select x.*
+create table jcap_2 as select x.parcelid_2015, x.mgra as mgra_p, x.j_2012, x.jcap, x.jcap2 /*changed this statement to bring in all the variables from jcap_1*/
 ,y.area as parcel_area,y.mgra,y.jur_id,y.cpa_id, y.s
 ,y1.hu_urb
 ,z.lu_2099
 ,v.dt_id as dt_2099
 ,case when z.du_&by1>0 then 1 else 0 end as hu_existing
 
-,round(x.jcap * y.s,1) as jcap2
+,round(x.jcap2 * y.s,1) as jcap3 /*changed this to jcap3 and updated it to be calculated from jcap2 (the SCS increased cap)*/
 ,round(x.j_2012 * y.s,1) as j_2012_2
 
 from jcap_1 as x
@@ -566,22 +600,21 @@ left join p_1b_location as y on x.parcelid_2015=y.parcel_id
 left join (select distinct parcel_id, hu_urb from p_1) as y1 on x.parcelid_2015=y1.parcel_id
 inner join p_2 as z on x.parcelid_2015=z.parcel_id
 left join dt_lu as v on z.lu_2099=v.lu_id
-order by parcelid_2015,jcap2 desc;
+order by parcelid_2015,jcap3 desc; /*changed to jcap3*/
 quit;
 
 
 proc sql;
-create table test_201 as select * from jcap_2 where jcap2 = .; 
+create table test_201 as select * from jcap_2 where jcap3 = .; /*changed to jcap3*/
 quit;
-
 
 proc sql;
 create table jcap_3 as select parcelid_2015, hu_urb, hu_existing, lu_2099, dt_2099
 ,mgra, jur_id, cpa_id
-,jcap2 as jcap
+,jcap3 as jcap /*changed to jcap3*/
 ,j_2012_2 as j_2012
 from jcap_2
-where jcap2>0;
+where jcap3>0; /*changed to jcap3*/
 
 create table jcap_3_sum_1 as select hu_urb,hu_existing,sum(jcap) as jcap
 from jcap_3 group by hu_urb,hu_existing;
@@ -593,6 +626,11 @@ end as type
 from jcap_3 group by type;
 quit;
 
+proc sql; 
+create table test_jcap_3 as 
+select sum(jcap) as jcap 
+from jcap_3; 
+quit; 
 
 /* include only certain parcels */
 proc sql;
@@ -1086,6 +1124,6 @@ select sum(slots_capacity) as sc, sum(slots_vacancy) as sv, sum(slots_cloned) as
 from job_slots_by_source; 
 quit; 
 
-data e1.jobs_from_capacities(replace=yes); set p_j_9;run;
+data e1.jobs_from_capacities; set p_j_9;run;
 
-data e1.job_slots_by_source(replace=yes); set job_slots_by_source;run;
+data e1.job_slots_by_source; set job_slots_by_source;run;

@@ -1,10 +1,5 @@
-/* Log did not work as intended, prevents in-window output */
-/* would need to set xver here for the below log method to work:
-%let xver = xpef## */
-/*
-proc printto log="T:\socioec\Current_Projects\&xver\log\&xver_log_started_%sysfunc(compress(%sysfunc(today(),date9.)_%sysfunc(time(),time6.0),%str( :))).txt";
-run;
-*/
+options nonotes;
+options set=SAS_HADOOP_RESTFUL 1;
 
 /* References the 'Variables and Libaries' file */
 %let a=%sysget(SAS_EXECFILEPATH);
@@ -12,13 +7,10 @@ run;
 %let valib=%sysfunc(tranwrd(&a,&b,_ Variables and Libraries.sas));
 %include "&valib";
 
-options nonotes;
-options set=SAS_HADOOP_RESTFUL 1;
-
 %let t01=%sysfunc(time(),time8.0);
 
 /* setting version of the components of change projections */
-%let coc = coc_calendar_proj_2020_1_10;
+%let coc = coc_calendar_proj_2018_1_20;
 
 libname sql_dof odbc noprompt="driver=SQL Server; server=sql2014a8; database=socioec_data;
 Trusted_Connection=yes" schema=ca_dof;
@@ -35,7 +27,7 @@ libname sh "T:\socioec\Current_Projects\Synthetic Households";
 /* Other pums data */
 libname shp "T:\socioec\Current_Projects\Synthetic Households\pums";
 
-/* setting the year for the latest ACS data used */
+/* setting the year for the latest ACS data */
 %let acs_yr=2017;
 
 /*
@@ -59,16 +51,16 @@ will be used as "2050" population
 %let dr = 102; /* setting id for death rates */
 
 /* version of the economic simulation */
-%let ecver=1209;
+%let ecver=1192;
 
 /* !!! specifying years that will be used in the ABM !!! */
 %global list1;
-%let list1=2017,2019,2021,2024,2026,2027,2030,2031,2033,2036,2041,2046,2051;
+%let list1=2019,2021,2024,2026,2027,2030,2031,2033,2036,2041,2046,2051;
 %put &list1;
 
-%let abmpath=T:\socioec\Current_Projects\&xver\abm_csv;
-%let list4=2016 2018 2020 2023 2025 2026 2029 2030 2032 2035 2040 2045 2050;
-/*%let abmv=01;*/
+%let abmpath=T:\socioec\Current_Projects\&xver\qa\abm_csv;
+%let list4=2018 2020 2023 2025 2026 2029 2030 2032 2035 2040 2045 2050;
+%let abmv=01;
 
 /*************************************************************************************************************/
 /*************************************************************************************************************/
@@ -199,43 +191,10 @@ informat
 gq_id gq_type jur ct cpa mgra age r r7 hisp sex dob;
 run;
 
-/* creates sd.dof_update and sd.ludu */
-%include "T:\socioec\Current_Projects\&xver\program_code\1013 Scenario (hu from urbansim).sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1014 Jurisdiction HP controls.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1015 Target hh distribution.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1020 Annual cycle.sas"; /* contains macro forecast */
-
-%macro xpef;
-%do yr=&by1 %to &yy2;
-	%forecast (yr=&yr);
-%end;
-%mend xpef;
-
-%xpef;
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1041 Export microdata to SQL.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1043 Income Imputation and Assignment.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1050 Income Upgrading.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1055 Synthetic Households.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1056 Employment Controls.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1057 Jobs capacity.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\1058 Incorporating employment events.sas";
-
-%include "T:\socioec\Current_Projects\&xver\program_code\2000 Assembling ABM forecast data.sas";
+%include "T:\socioec\Current_Projects\&xver\qa\2000 Assembling ABM forecast data.sas";
 
 options notes;
 
 %let t02=%sysfunc(time(),time8.0);
 %put Program Started at &t01;
 %put Program Ended at &t02;
-
-/* proc printto;run; */

@@ -1,8 +1,3 @@
-/*libname e0 "T:\socioec\Current_Projects\estimates\input_data";*/
-
-/*libname inc "T:\socioec\Income_Reconciliation_Model\Inputs";*/
-
-/*libname sql_xpef odbc noprompt="driver=SQL Server; server=sql2014a8; database=isam;Trusted_Connection=yes" schema=xpef03;*/
 
 proc sql;
 create table cnt_inc_1 as select est as medinc from e1.Acs_medinc_cnt_1y
@@ -34,8 +29,6 @@ from cnt_inc_1 as x
 cross join cpi_2010 as y;
 quit;
 
-/*ata cnt_inc_2(rename=(medinc=mi));set cnt_inc_1;run;*/
-
 data cnt_inc_3; set cnt_inc_2;
 do yr=&by2 to &yy3;
 	output;
@@ -49,33 +42,9 @@ else do; medinc = m + round(m * 0.003,1); m = medinc;end;
 medinc1k=round(medinc,100);
 run;
 
-/* global macro list1 is defined and assigned in 1043 Income Imputation and Assignment.sas */
-
-/*
-
-%global list1;
-%let list1=2019,2021,2026,2031,2036,2041,2046,2051;
-%put &list1;
-
-*/
-
 proc sql;
 create table cnt_inc_5 as select * from cnt_inc_4 where yr in (&list1);
 quit;
-
-/*
-proc sql;
-create table medinc_avginc as select x.medinc1k,round(x.avginc,1000) as avginc1k,y.yr
-from e1.medinc1k_avginc as x
-inner join (select distinct yr,medinc1k from cnt_inc_5) as y on x.medinc1k=y.medinc1k
-order by medinc1k;
-
-create table inc_dist_1 as select x.*,y.yr,y.medinc1k
-from e1.avginc1k_inc10 as x
-inner join medinc_avginc as y on x.avginc1k=y.avginc1k
-order by medinc1k,inc10;
-quit;
-*/
 
 proc sql;
 create table inc_dist_1 as select x.yr,y.medinc1k,y.inc10,y.inc_cat,y.hh_share /*,y.medinc1k*/
@@ -100,7 +69,6 @@ proc sql;
 create table inc_dist_1c as select yr /*,avginc1k*/,medinc1k,l,u,s1,s2
 from inc_dist_1b where s1<=0.5 and s2>=0.5;
 quit;
-
 
 
 proc sql;
@@ -143,10 +111,7 @@ left join hh_0_sum_1 as y on x.yr=y.yr and x.inc10=y.inc10_0
 order by yr,inc10;
 quit;
 
-
-
 /* start cycle */
-
 %macro inc10;
 
 proc sql;
@@ -207,7 +172,6 @@ quit;
 %inc10;
 
 
-
 proc sql;
 create table test_1 as select yr,inc10_0,inc10_1,inc10_2,inc10_3,inc10_4,inc10_5,inc10_6,inc10_7,inc10_8,inc10_9,count(hh_id) as n
 from hh_0 group by yr,inc10_0,inc10_1,inc10_2,inc10_3,inc10_4,inc10_5,inc10_6,inc10_7,inc10_8,inc10_9;
@@ -236,8 +200,6 @@ inner join hh_base as y on x.yr=y.yr and x.hh_id=y.hh_id;
 quit;
 
 
-
-
 proc sql;
 create table hh_4_1 as select x.*,y.lower_bound as l,y.upper_bound as u
 from (select yr,inc10_new,count(hh_id) as hh1 from hh_4 group by yr,inc10_new) x
@@ -250,10 +212,6 @@ quit;
 
 
 data hh_4_2 (drop=l u);set hh_4_1;where hh1>0;
-/*
-l=int(inc16) * 1000;
-u=(inc16 - int(inc16)) * 1000000;
-*/
 do i=1 to hh1;
 	inc=round((u-l) / (hh1+1) * i + l,1);
 	output;
@@ -321,16 +279,6 @@ quit;
 
 proc transpose data=hh_7_test_02 out=hh_7_test_03(drop=_name_);by ct;var med_2;id yr;run;
 
-/*
-proc sql;
-create table hh_7_test_04 as select *,_2050 / _2020 as g format=percent8.1
-from hh_7_test_03;
-
-create table hh_7_test_05 as select round(g*100,1) as g1,count(ct) as n
-from hh_7_test_04 group by g1;
-quit;
-*/
-
 
 proc sql;
 create table hh_8 as select yr length=3 format=4.,hh_id,ct,inc10_2 + 10 as income_group_id_2010 length=3 format=2.,inc_2010_2 as inc_2010
@@ -377,36 +325,18 @@ quit;
 
 
 proc sql;
-/*drop table sql_xpef.household_income_upgraded;*/
-
 insert into sql_xpef.household_income_upgraded(bulkload=yes bl_options=TABLOCK) select * from hh_9;
 quit;
 
 options nonotes;
 
-
-/*THIS IS THE STEP THAT CHANGED TO INCLUDE THE SELF EMPLOYED JOBS FOR 2016*/
 proc sql;
-delete from sql_xpef.household_income_upgraded where yr in(2016,2017);
+delete from sql_xpef.household_income_upgraded where yr=&by0;
 
-create table inc_2016 as select x.yr, x.hh_id, y.ct, x.income_group_id_2010, x.inc_2010
+create table inc_&by0 as select x.yr, x.hh_id, y.ct, x.income_group_id_2010, x.inc_2010
 from sql_est.household_income as x
 inner join sql_est.housing_units as y on x.hh_id=y.hh_id and x.yr=y.yr
-where x.yr = 2016;
+where x.yr = &by0;
 
-create table inc_2017 as select x.yr, x.hh_id, y.ct, x.income_group_id_2010, x.inc_2010
-from sql_est.household_income as x
-inner join sql_est.housing_units as y on x.hh_id=y.hh_id and x.yr=y.yr
-where x.yr = 2017;
-
-insert into sql_xpef.household_income_upgraded(bulkload=yes bl_options=TABLOCK) select * from inc_2016;
-insert into sql_xpef.household_income_upgraded(bulkload=yes bl_options=TABLOCK) select * from inc_2017;
-quit;
-
-proc sql; 
-create table test_inc as 
-select yr, count(hh_id) as households 
-from sql_xpef.household_income_upgraded
-group by yr
-order by yr; 
+insert into sql_xpef.household_income_upgraded(bulkload=yes bl_options=TABLOCK) select * from inc_&by0;
 quit;

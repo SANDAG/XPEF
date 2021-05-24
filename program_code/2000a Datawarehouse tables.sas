@@ -1,34 +1,5 @@
-/*
-%let xver=xpef06;
-
-libname sql_xpef odbc noprompt="driver=SQL Server; server=sql2014a8; database=isam;
-Trusted_Connection=yes" schema=&xver;
-
-libname sql_dim odbc noprompt="driver=SQL Server; server=sql2014a8; database=demographic_warehouse;
-Trusted_Connection=yes" schema=dim;
-*/
-
 
 %let dw1=2017,2019,2021,2026,2031,2036,2041,2046,2051;
-
-
-/*
-libname sql_dwst odbc noprompt="driver=SQL Server; server=sql2014a8; database=demographic_warehouse;
-DBCOMMIT=10000;Trusted_Connection=yes" schema=staging;
-
-libname sql_xpef odbc noprompt="driver=SQL Server; server=sql2014a8; database=isam;
-Trusted_Connection=yes" schema=xpef03;
-
-libname sql_est odbc noprompt="driver=SQL Server; server=sql2014a8; database=estimates;
-Trusted_Connection=yes" schema=est_2017_01;
-*/
-
-
-/*
-update
-sql_dim.datasource
-sql_dim.year
-*/
 
 /*
 ethnicity_id
@@ -48,13 +19,6 @@ housing_type_id
 2 - gq mil
 3 - gq col
 4 - gq ins + gq oth
-*/
-
-/*
-proc sql;
-create table mgra_id as select mgra_id,mgra,jurisdiction_id as jur,cpa_id as cpa
-from sql_xpef.mgra_id_new;
-quit;
 */
 
 proc sql;
@@ -179,9 +143,6 @@ create table test_01 as select yr_id,sum(hu_unocc) as hu_unocc
 from hu_est_3 group by yr_id;
 quit;
 
-
-
-
 /*
 structure_type_id
 1 - sf
@@ -293,76 +254,56 @@ quit;
 
 proc sql;
 create table dw_housing as select
-/*&ds as datasource_id length=3 format=2.*/
-x1.* /*,x2.**/,y.*
+x1.* ,y.*
 ,coalesce(z.units,0) as units length=4 format=5.
 ,coalesce(z.unoccupiable,0) as unoccupiable length=4 format=5.
 ,coalesce(z.occupied,0) as occupied length=4 format=5.
 ,coalesce(z.vacancy,0) as vacancy length=4 format=5.
 from scale_mgra_yr as x1
-/*cross join (select distinct mgra_id from dw_housing_0) as x2*/
 cross join scale_structure as y
 left join dw_housing_0 as z
 on x1.yr_id=z.yr_id and x1.mgra_id=z.mgra_id and y.structure_type_id=z.structure_type_id;
 quit;
 
-/*
-proc sql;
-create table test_01 as select yr_id
-,sum(units) as units
-,sum(occupied) as occupied
-,sum(vacancy) as vacancy
-from dw_housing group by yr_id;
-quit;
-*/
-
 proc sql;
 create table dw_households as select
-/*&ds as datasource_id length=3 format=2.*/
-x1.* /*,x2.**/,y.*,coalesce(z.households,0) as households length=5 format=7.
+x1.* ,y.*, coalesce(z.households,0) as households length=5 format=7.
 from scale_mgra_yr as x1
-/*cross join (select distinct mgra_id from dw_population_0) as x2*/
 cross join scale_households as y
 left join dw_households_0 as z
 on x1.yr_id=z.yr_id and x1.mgra_id=z.mgra_id and y.household_size_id=z.household_size_id;
 
 create table dw_population as select
-/*&ds as datasource_id length=3 format=2.*/
-x1.* /*,x2.**/,y.*,coalesce(z.population,0) as population length=5 format=7.
+x1.* ,y.*, coalesce(z.population,0) as population length=5 format=7.
 from scale_mgra_yr as x1
-/*cross join (select distinct mgra_id from dw_population_0) as x2*/
 cross join scale_housing as y
 left join dw_population_0 as z
 on x1.yr_id=z.yr_id and x1.mgra_id=z.mgra_id and y.housing_type_id=z.housing_type_id;
 
 create table dw_age as select 
-x1.* /*,x2.**/,y.*,coalesce(z.population,0) as population length=5 format=7.
+x1.* ,y.*, coalesce(z.population,0) as population length=5 format=7.
 from scale_mgra_yr as x1
-/*cross join (select distinct mgra_id from dw_age_0) as x2*/
 cross join scale_age as y
 left join dw_age_0 as z
 on x1.yr_id=z.yr_id and x1.mgra_id=z.mgra_id and y.age_group_id=z.age_group_id;
 
 create table dw_sex as select
-x1.* /*,x2.**/,y.*,coalesce(z.population,0) as population length=5 format=7.
+x1.* ,y.*, coalesce(z.population,0) as population length=5 format=7.
 from scale_mgra_yr as x1
-/*cross join (select distinct mgra_id from dw_sex_0) as x2*/
 cross join scale_sex as y
 left join dw_sex_0 as z
 on x1.yr_id=z.yr_id and x1.mgra_id=z.mgra_id and y.sex_id=z.sex_id;
 
 create table dw_ethnicity as select
-x1.* /*,x2.**/,y.*,coalesce(z.population,0) as population length=5 format=7.
+x1.* ,y.*, coalesce(z.population,0) as population length=5 format=7.
 from scale_mgra_yr as x1
-/*cross join (select distinct mgra_id from dw_ethnicity_0) as x2*/
 cross join scale_ethnicity as y
 left join dw_ethnicity_0 as z
 on x1.yr_id=z.yr_id and x1.mgra_id=z.mgra_id and y.ethnicity_id=z.ethnicity_id;
 
 create table dw_age_sex_ethnicity as select
-x1.* /*,x2.**/,y1.*,y2.*,y3.*,coalesce(z.population,0) as population length=5 format=7.
+x1.* ,y1.*,y2.*,y3.*,coalesce(z.population,0) as population length=5 format=7.
 from scale_mgra_yr as x1
-/*cross join (select distinct mgra_id from dw_age_sex_ethnicity_0) as x2*/
 cross join scale_age as y1
 cross join scale_sex as y2
 cross join scale_ethnicity as y3
@@ -372,16 +313,6 @@ and y1.age_group_id=z.age_group_id
 and y2.sex_id=z.sex_id
 and y3.ethnicity_id=z.ethnicity_id;
 quit; 
-
-/*
-[household_income_id]
- ,[datasource_id]
- ,[yr_id]
- ,[mgra_id]
- ,[income_group_id]
- ,[households]
- 
-*/
 
 proc sql;
 create table hh_9 as
@@ -399,13 +330,6 @@ proc sql;
 create table scale_inc as select distinct income_group_id_2010 as income_group_id format=2.
 from hh_9;
 
-/*
-create table scale_3 as select x.*,y.*,z.*
-from scale_mgra as x
-cross join scale_yr as y
-cross join scale_inc as z;
-*/
-
 create table scale_3a as select y.*,z.*
 from scale_mgra_yr as y
 cross join scale_inc as z;
@@ -420,29 +344,12 @@ yr as yr_id length=3 format=4.
 from hh_9 group by yr_id,mgra_id,income_group_id;
 
 create table hh_9_2010 as select 
-x1.* /*,x2.**/,coalesce(y.households,0) as households length=4 format=5.
+x1.* ,coalesce(y.households,0) as households length=4 format=5.
 from scale_3a as x1
-/*cross join (select distinct mgra_id from hh_9_2010_0) as x2*/
 left join hh_9_2010_0 as y
 on x1.yr_id=y.yr_id and x1.mgra_id=y.mgra_id and x1.income_group_id=y.income_group_id
 order by yr_id,mgra_id,income_group_id;
 quit;
-
-/*
-proc sql;
-drop table sql_xpef.dw_household_income;
-drop table sql_xpef.dw_population;
-drop table sql_xpef.dw_age;
-drop table sql_xpef.dw_sex;
-drop table sql_xpef.dw_ethnicity;
-drop table sql_xpef.dw_age_sex_ethnicity;
-drop table sql_xpef.dw_housing;
-drop table sql_xpef.dw_households;
-
-drop table sql_xpef.dw_jobs;
-drop table sql_xpef.dw_jobs_2;
-quit;
-*/
 
 options notes;
 
@@ -466,32 +373,166 @@ EXECUTE ( drop table if exists isam.&xver..dw_jobs_4; ) BY ODBC ; %PUT &SQLXRC. 
 
 EXECUTE ( drop table if exists isam.&xver..dw_jobs_base; ) BY ODBC ; %PUT &SQLXRC. &SQLXMSG.;
 
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_household_income(
+mgra_id int
+,yr_id smallint
+,income_group_id tinyint
+,households int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_population(
+mgra_id int
+,yr_id smallint
+,housing_type_id tinyint
+,population int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_age(
+mgra_id int
+,yr_id smallint
+,age_group_id tinyint
+,population int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_sex(
+mgra_id int
+,yr_id smallint
+,sex_id tinyint
+,population int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_ethnicity(
+mgra_id int
+,yr_id smallint
+,ethnicity_id tinyint
+,population int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_age_sex_ethnicity(
+mgra_id int
+,yr_id smallint
+,age_group_id tinyint
+,sex_id tinyint
+,ethnicity_id tinyint
+,population int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_housing(
+mgra_id int
+,yr_id smallint
+,structure_type_id tinyint
+,units int
+,unoccupiable int
+,occupied int
+,vacancy int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_households(
+mgra_id int
+,yr_id smallint
+,household_size_id tinyint
+,households int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_jobs(
+yr_id smallint
+,mgra_id int
+,employment_type_id tinyint
+,jobs int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_jobs_2(
+yr_id smallint
+,mgra_id int
+,sandag_industry_id tinyint
+,type_id tinyint
+,employment_type_id tinyint
+,source_id tinyint
+,jobs int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_jobs_3(
+parcel_id int
+,sandag_industry_id_1 tinyint
+,mgra int
+,jur_id tinyint
+,cpa_id smallint
+,slots_capacity int
+,slots_vacancy int
+,slots_cloned int
+,slots_events int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_jobs_4(
+parcel_id int
+,mgra int
+,jur_id tinyint
+,cpa_id smallint
+,sandag_industry_id tinyint
+,type tinyint
+,yr smallint
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(CREATE TABLE isam.&xver..dw_jobs_base(
+parcel_id int
+,job_id int
+,sector_id tinyint
+,type tinyint
+,sandag_industry_id tinyint
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+
 DISCONNECT FROM ODBC ;
 quit;
 
 proc sql;
-create table sql_xpef.dw_household_income(bulkload=yes bl_options=TABLOCK) as select * from hh_9_2010;
-create table sql_xpef.dw_population(bulkload=yes bl_options=TABLOCK) as select * from dw_population;
-create table sql_xpef.dw_age(bulkload=yes bl_options=TABLOCK) as select * from dw_age;
-create table sql_xpef.dw_sex(bulkload=yes bl_options=TABLOCK) as select * from dw_sex;
-create table sql_xpef.dw_ethnicity(bulkload=yes bl_options=TABLOCK) as select * from dw_ethnicity;
-create table sql_xpef.dw_age_sex_ethnicity(bulkload=yes bl_options=TABLOCK) as select * from dw_age_sex_ethnicity;
-create table sql_xpef.dw_housing(bulkload=yes bl_options=TABLOCK) as select * from dw_housing;
+insert into sql_xpef.dw_household_income(bulkload=yes bl_options=TABLOCK) select * from hh_9_2010;
+insert into sql_xpef.dw_population(bulkload=yes bl_options=TABLOCK) select * from dw_population;
+insert into sql_xpef.dw_age(bulkload=yes bl_options=TABLOCK) select * from dw_age;
+insert into sql_xpef.dw_sex(bulkload=yes bl_options=TABLOCK) select * from dw_sex;
+insert into sql_xpef.dw_ethnicity(bulkload=yes bl_options=TABLOCK) select * from dw_ethnicity;
+insert into sql_xpef.dw_age_sex_ethnicity(bulkload=yes bl_options=TABLOCK) select * from dw_age_sex_ethnicity;
+insert into sql_xpef.dw_housing(bulkload=yes bl_options=TABLOCK) select * from dw_housing;
 
-create table sql_xpef.dw_households(bulkload=yes bl_options=TABLOCK) as select * from dw_households;
+insert into sql_xpef.dw_households(bulkload=yes bl_options=TABLOCK) select * from dw_households;
 
-create table sql_xpef.dw_jobs(bulkload=yes bl_options=TABLOCK) as select * from e1.dw_jobs;
-create table sql_xpef.dw_jobs_2(bulkload=yes bl_options=TABLOCK) as select * from e1.dw_jobs_2;
+insert into sql_xpef.dw_jobs(bulkload=yes bl_options=TABLOCK) select * from e1.dw_jobs;
 
+insert into sql_xpef.dw_jobs_2(bulkload=yes bl_options=TABLOCK) select * from e1.dw_jobs_2;
 
-create table sql_xpef.dw_jobs_3(bulkload=yes bl_options=TABLOCK) as select * from e1.job_slots_by_source;
+insert into sql_xpef.dw_jobs_3(bulkload=yes bl_options=TABLOCK) select * from e1.job_slots_by_source;
 
-create table sql_xpef.dw_jobs_4(bulkload=yes bl_options=TABLOCK) as select * from e1.jobs_from_capacities;
+insert into sql_xpef.dw_jobs_4(bulkload=yes bl_options=TABLOCK) select * from e1.jobs_from_capacities;
 
-create table sql_xpef.dw_jobs_base(bulkload=yes bl_options=TABLOCK) as select * from e1.jobs_base;
+insert into sql_xpef.dw_jobs_base(bulkload=yes bl_options=TABLOCK) select * from e1.jobs_base;
 
 quit;
 
 options nonotes;
-
-
