@@ -1,0 +1,250 @@
+
+NOTE: A byte-order mark in the file "M:\RES\estimates & forecast\SR14 Forecast\Scheduled
+      Development\Non-residential Scheduled Development\non residential sched dev for the SCS
+      forecast employment 05142020.csv" (for fileref "#LN00239") indicates that the data is
+      encoded in "utf-8".  This encoding will be used to process the file.
+NOTE: The infile 'M:\RES\estimates & forecast\SR14 Forecast\Scheduled Development\Non-residential
+      Scheduled Development\non residential sched dev for the SCS forecast employment
+      05142020.csv' is:
+
+      Filename=M:\RES\estimates & forecast\SR14 Forecast\Scheduled Development\Non-residential
+      Scheduled Development\non residential sched dev for the SCS forecast employment
+      05142020.csv,
+      RECFM=V,LRECL=52424,File Size (bytes)=46617,
+      Last Modified=22May2020:16:10:42,
+      Create Time=15May2020:11:28:35
+
+NOTE: Invalid data for startdate in line 2 160-163.
+RULE:     ----+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+---
+2         1965,OMWD Campus Phase 2,5336,23,0,0,0,0,0,0,https://www.olivenhain.com/www-olivenhain-c
+      89  om-headquarters/,SR14 Feedback underconstuction in 2017,7/28/2017,5336,NULL,12/31/2020,0
+     177  ,5336,RRI,7/28/2017,4,Carlsbad,0,not completed,"In progress (I think), mostly completed" 264
+siteid=1965 sitename=OMWD Campus Phase 2 _totalsqft=5336 _civemp=23 milemp=0 sfu=0 mfu=0 mhu=0
+civgq=0 milgq=0 Link=https://www.olivenhain.com/www-olivenhain-com-headquarters/
+source=SR14 Feedback underconstuction in 2017 infodate=07/28/2017 spacesqft=5336 startdate=.
+compdate=12/31/2020 ressqft=0 nressqft=5336 created_us=RRI created_da=07/28/2017 devtypeid=4
+city=Carlsbad old_siteid=0 status=not completed comment=In progress (I think), mostly completed
+_ERROR_=1 _N_=1
+NOTE: Invalid data for startdate in line 3 282-285.
+NOTE: Invalid data for compdate in line 3 287-290.
+3         1024,Uptown Bressi,90267,181,0,0,125,0,0,0,"87,000 SF (https://sheaproperties.com/retail
+      89  /detail/24/the-square-at-bressi-ranch; https://carlsbadlifeinaction.com/wp-content/uploa
+     177  ds/2015/07/DevProjects_11x17mapbook1.pdf)",City of Carlsbad not developed in 2017 imager
+     265  y,3/2/2009,91964,NULL,NULL,0,91964,Unknown,12/14/2017,18,Carlsbad,1640,not completed,Com
+     353  pleted 358
+siteid=1024 sitename=Uptown Bressi _totalsqft=90267 _civemp=181 milemp=0 sfu=0 mfu=125 mhu=0
+civgq=0 milgq=0
+Link=87,000 SF (https://sheaproperties.com/retail/detail/24/the-square-at-bressi-ranch; https://ca
+rlsbadlifeinaction.com/wp-content/uploads/2015/07/DevProjects_11x17mapbook1.pdf)
+source=City of Carlsbad not developed in 2017 imagery infodate=03/02/2009 spacesqft=91964
+startdate=. compdate=. ressqft=0 nressqft=91964 created_us=Unknown created_da=12/14/2017
+devtypeid=18 city=Carlsbad old_siteid=1640 status=not completed comment=Completed _ERROR_=1 _N_=2
+NOTE: Invalid data for startdate in line 4 233-236.
+NOTE: Invalid data for compdate in line 4 238-241.
+4         1039,Ponto Beachfront Res/Com,18000,36,0,0,137,0,0,0,"18,000 sq feet is retail (http://w
+      89  ww.sandiegouniontribune.com/communities/north-county/sd-no-ponto-park-20180501-story.htm
+RULE:     ----+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+---
+     177  l)",SR14 Feedback not developed in 2017,7/31/2017,18000,NULL,NULL,0,18000,RRI,7/31/2017,
+     265  18,Carlsbad,3163,not completed,Completed 304
+siteid=1039 sitename=Ponto Beachfront Res/Com _totalsqft=18000 _civemp=36 milemp=0 sfu=0 mfu=137
+mhu=0 civgq=0 milgq=0
+Link=18,000 sq feet is retail (http://www.sandiegouniontribune.com/communities/north-county/sd-no-
+ponto-park-20180501-story.html) source=SR14 Feedback not developed in 2017 infodate=07/31/2017
+spacesqft=18000 startdate=. compdate=. ressqft=0 nressqft=18000 created_us=RRI
+created_da=07/31/2017 devtypeid=18 city=Carlsbad old_siteid=3163 status=not completed
+comment=Completed _ERROR_=1 _N_=3
+NOTE: Invalid data for startdate in line 5 206-209.
+NOTE: Invalid data for compdate in line 5 211-214.
+5         1044,Carlsbad Village Lofts,10758,22,0,0,108,0,0,0,https://www.sandiegouniontribune.com/
+      89  communities/north-county/sd-no-village-lofts-20170301-story.html,SR14 Feedback not devel
+     177  oped in 2017,7/31/2017,10758,NULL,NULL,0,10758,RRI,7/31/2017,18,Carlsbad,0,not completed
+     265  ,Completed 274
+siteid=1044 sitename=Carlsbad Village Lofts _totalsqft=10758 _civemp=22 milemp=0 sfu=0 mfu=108
+mhu=0 civgq=0 milgq=0
+Link=https://www.sandiegouniontribune.com/communities/north-county/sd-no-village-lofts-20170301-st
+ory.html source=SR14 Feedback not developed in 2017 infodate=07/31/2017 spacesqft=10758
+startdate=. compdate=. ressqft=0 nressqft=10758 created_us=RRI created_da=07/31/2017 devtypeid=18
+city=Carlsbad old_siteid=0 status=not completed comment=Completed _ERROR_=1 _N_=4
+NOTE: Invalid data for startdate in line 6 206-209.
+NOTE: Invalid data for compdate in line 6 211-214.
+6         1045,Grand Madison,4600,9,0,0,11,0,0,0,https://www.bisnow.com/san-diego/news/mixed-use/c
+      89  arlsbad-village-becoming-dense-urban-and-transited-oriented-58294,SR14 Feedback not deve
+     177  loped in 2017,7/28/2017,4600,NULL,NULL,0,4600,RRI,7/28/2017,18,Carlsbad,1955,not complet
+     265  ed,In Progress 278
+siteid=1045 sitename=Grand Madison _totalsqft=4600 _civemp=9 milemp=0 sfu=0 mfu=11 mhu=0 civgq=0
+milgq=0
+Link=https://www.bisnow.com/san-diego/news/mixed-use/carlsbad-village-becoming-dense-urban-and-tra
+nsited-oriented-58294 source=SR14 Feedback not developed in 2017 infodate=07/28/2017
+spacesqft=4600 startdate=. compdate=. ressqft=0 nressqft=4600 created_us=RRI created_da=07/28/2017
+devtypeid=18 city=Carlsbad old_siteid=1955 status=not completed comment=In Progress _ERROR_=1
+_N_=5
+NOTE: Invalid data for startdate in line 7 152-155.
+NOTE: Invalid data for compdate in line 7 157-160.
+7         1046,DKN Hotel - 104 rooms,62354,68,0,0,0,0,0,0,http://www.dknhotels.com/portfolio/?item
+      89  _status=12,SR14 Feedback not developed in 2017,2/27/2009,62354,NULL,NULL,0,62354,Unknown
+     177  ,12/14/2017,7,Carlsbad,1626,not completed,Completed 227
+siteid=1046 sitename=DKN Hotel - 104 rooms _totalsqft=62354 _civemp=68 milemp=0 sfu=0 mfu=0 mhu=0
+civgq=0 milgq=0 Link=http://www.dknhotels.com/portfolio/?item_status=12
+source=SR14 Feedback not developed in 2017 infodate=02/27/2009 spacesqft=62354 startdate=.
+compdate=. ressqft=0 nressqft=62354 created_us=Unknown created_da=12/14/2017 devtypeid=7
+city=Carlsbad old_siteid=1626 status=not completed comment=Completed _ERROR_=1 _N_=6
+NOTE: Invalid data for startdate in line 8 115-118.
+NOTE: Invalid data for compdate in line 8 120-123.
+8         1050,Carlsbad Energy Center powerplant,66350,121,0,0,0,0,0,0,,SR14 Feedback not develope
+      89  d in 2017,2/27/2009,66350,NULL,NULL,0,66350,Unknown,12/14/2017,3,Carlsbad,1605,not compl
+     177  eted,In Progress 192
+siteid=1050 sitename=Carlsbad Energy Center powerplant _totalsqft=66350 _civemp=121 milemp=0 sfu=0
+mfu=0 mhu=0 civgq=0 milgq=0 Link=  source=SR14 Feedback not developed in 2017 infodate=02/27/2009
+spacesqft=66350 startdate=. compdate=. ressqft=0 nressqft=66350 created_us=Unknown
+created_da=12/14/2017 devtypeid=3 city=Carlsbad old_siteid=1605 status=not completed
+comment=In Progress _ERROR_=1 _N_=7
+NOTE: Invalid data for startdate in line 9 128-131.
+NOTE: Invalid data for compdate in line 9 133-136.
+9         1052,Carlsbad Floral Trade Center and Marketplace,108000,184,0,0,0,0,0,0,,SR14 Feedback
+      89  not developed in 2017,7/28/2017,108000,NULL,NULL,0,108000,RRI,7/28/2017,5,Carlsbad,1964,
+     177  not completed,Completed 199
+siteid=1052 sitename=Carlsbad Floral Trade Center and Marketplace _totalsqft=108000 _civemp=184
+milemp=0 sfu=0 mfu=0 mhu=0 civgq=0 milgq=0 Link=  source=SR14 Feedback not developed in 2017
+infodate=07/28/2017 spacesqft=108000 startdate=. compdate=. ressqft=0 nressqft=108000
+created_us=RRI created_da=07/28/2017 devtypeid=5 city=Carlsbad old_siteid=1964
+status=not completed comment=Completed _ERROR_=1 _N_=8
+NOTE: Invalid data for startdate in line 10 209-212.
+NOTE: Invalid data for compdate in line 10 214-217.
+10        1053,Legoland Hotel California (new hotel on site) - 250 rooms,137700,150,0,0,0,0,0,0,ht
+      89  tps://vacations.legoland.com/california/booking/Accommodation.html,SR14 Feedback not dev
+     177  eloped in 2017,7/28/2017,137700,NULL,NULL,0,137700,RRI,7/28/2017,7,Carlsbad,1950,not com
+     265  pleted,Completed 280
+siteid=1053 sitename=Legoland Hotel California (new hotel on site) - 250 rooms _totalsqft=137700
+_civemp=150 milemp=0 sfu=0 mfu=0 mhu=0 civgq=0 milgq=0
+Link=https://vacations.legoland.com/california/booking/Accommodation.html
+source=SR14 Feedback not developed in 2017 infodate=07/28/2017 spacesqft=137700 startdate=.
+compdate=. ressqft=0 nressqft=137700 created_us=RRI created_da=07/28/2017 devtypeid=7
+city=Carlsbad old_siteid=1950 status=not completed comment=Completed _ERROR_=1 _N_=9
+NOTE: Invalid data for startdate in line 11 164-167.
+NOTE: Invalid data for compdate in line 11 169-172.
+11        1058,La Costa Resort PA1,85285,33,0,0,0,0,0,0,https://www.omnihotels.com/hotels/san-dieg
+      89  o-la-costa,City of Carlsbad not developed in 2017 imagery,12/14/2017,85285,NULL,NULL,0,8
+     177  5285,Unknown,12/14/2017,7,Carlsbad,1644,not completed,Completed 239
+siteid=1058 sitename=La Costa Resort PA1 _totalsqft=85285 _civemp=33 milemp=0 sfu=0 mfu=0 mhu=0
+civgq=0 milgq=0 Link=https://www.omnihotels.com/hotels/san-diego-la-costa
+source=City of Carlsbad not developed in 2017 imagery infodate=12/14/2017 spacesqft=85285
+startdate=. compdate=. ressqft=0 nressqft=85285 created_us=Unknown created_da=12/14/2017
+devtypeid=7 city=Carlsbad old_siteid=1644 status=not completed comment=Completed _ERROR_=1 _N_=10
+NOTE: Invalid data for startdate in line 12 162-165.
+NOTE: Invalid data for compdate in line 12 167-170.
+12        1060,La Costa Resort PA2,40321,38,0,0,0,0,0,0,https://www.omnihotels.com/hotels/san-dieg
+      89  o-la-costa,City of Carlsbad not developed in 2017 imagery,3/2/2009,40321,NULL,NULL,0,403
+     177  21,Unknown,12/14/2017,7,Carlsbad,1645,not completed, 228
+siteid=1060 sitename=La Costa Resort PA2 _totalsqft=40321 _civemp=38 milemp=0 sfu=0 mfu=0 mhu=0
+civgq=0 milgq=0 Link=https://www.omnihotels.com/hotels/san-diego-la-costa
+source=City of Carlsbad not developed in 2017 imagery infodate=03/02/2009 spacesqft=40321
+startdate=. compdate=. ressqft=0 nressqft=40321 created_us=Unknown created_da=12/14/2017
+devtypeid=7 city=Carlsbad old_siteid=1645 status=not completed comment=  _ERROR_=1 _N_=11
+NOTE: Invalid data for startdate in line 13 124-127.
+NOTE: Invalid data for compdate in line 13 129-132.
+13        1064,LW Office Building - adding additional bldg,15800,69,0,0,0,0,0,0,,SR14 Feedback not
+      89   developed in 2017,7/28/2017,15800,NULL,NULL,0,15800,RRI,7/28/2017,4,Carlsbad,1956,not c
+     177  ompleted,Completed 194
+siteid=1064 sitename=LW Office Building - adding additional bldg _totalsqft=15800 _civemp=69
+milemp=0 sfu=0 mfu=0 mhu=0 civgq=0 milgq=0 Link=  source=SR14 Feedback not developed in 2017
+infodate=07/28/2017 spacesqft=15800 startdate=. compdate=. ressqft=0 nressqft=15800 created_us=RRI
+created_da=07/28/2017 devtypeid=4 city=Carlsbad old_siteid=1956 status=not completed
+comment=Completed _ERROR_=1 _N_=12
+NOTE: Invalid data for startdate in line 14 110-113.
+NOTE: Invalid data for compdate in line 14 115-118.
+14        1088,La Costa Resort PA4,80760,45,0,0,0,0,0,0,,City of Carlsbad not developed in 2017 im
+RULE:     ----+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+---
+      89  agery,3/2/2009,80760,NULL,NULL,0,80760,Unknown,12/14/2017,7,Carlsbad,1646,not completed,
+     177  Completed 185
+siteid=1088 sitename=La Costa Resort PA4 _totalsqft=80760 _civemp=45 milemp=0 sfu=0 mfu=0 mhu=0
+civgq=0 milgq=0 Link=  source=City of Carlsbad not developed in 2017 imagery infodate=03/02/2009
+spacesqft=80760 startdate=. compdate=. ressqft=0 nressqft=80760 created_us=Unknown
+created_da=12/14/2017 devtypeid=7 city=Carlsbad old_siteid=1646 status=not completed
+comment=Completed _ERROR_=1 _N_=13
+NOTE: Invalid data for startdate in line 15 116-119.
+NOTE: Invalid data for compdate in line 15 121-124.
+15        1944,Hughes Circuits (Oaks North Lot 7),84825,183,0,0,0,0,0,0,,SR14 Feedback not develop
+      89  ed in 2017,7/28/2017,84825,NULL,NULL,0,84825,RRI,7/28/2017,2,Carlsbad,0,not completed,Co
+     177  mpleted 183
+siteid=1944 sitename=Hughes Circuits (Oaks North Lot 7) _totalsqft=84825 _civemp=183 milemp=0
+sfu=0 mfu=0 mhu=0 civgq=0 milgq=0 Link=  source=SR14 Feedback not developed in 2017
+infodate=07/28/2017 spacesqft=84825 startdate=. compdate=. ressqft=0 nressqft=84825 created_us=RRI
+created_da=07/28/2017 devtypeid=2 city=Carlsbad old_siteid=0 status=not completed
+comment=Completed _ERROR_=1 _N_=14
+NOTE: Invalid data for startdate in line 16 100-103.
+NOTE: Invalid data for compdate in line 16 105-108.
+16        1953,4 Plus 1 Luxury Living,1105,2,0,0,4,0,0,0,,SR14 Feedback not developed in 2017,7/28
+      89  /2017,1105,NULL,NULL,0,1105,RRI,7/28/2017,18,Carlsbad,0,not completed, 158
+siteid=1953 sitename=4 Plus 1 Luxury Living _totalsqft=1105 _civemp=2 milemp=0 sfu=0 mfu=4 mhu=0
+civgq=0 milgq=0 Link=  source=SR14 Feedback not developed in 2017 infodate=07/28/2017
+spacesqft=1105 startdate=. compdate=. ressqft=0 nressqft=1105 created_us=RRI created_da=07/28/2017
+devtypeid=18 city=Carlsbad old_siteid=0 status=not completed comment=  _ERROR_=1 _N_=15
+NOTE: Invalid data for startdate in line 17 127-130.
+NOTE: Invalid data for compdate in line 17 132-135.
+17        1961,Home 2 Hilton Carlsbad Suites - 142 room hotel,86886,95,0,0,0,0,0,0,,SR14 Feedback
+      89  not developed in 2017,7/28/2017,86886,NULL,NULL,0,86886,RRI,7/28/2017,7,Carlsbad,0,not c
+     177  ompleted,In Progress 196
+siteid=1961 sitename=Home 2 Hilton Carlsbad Suites - 142 room hotel _totalsqft=86886 _civemp=95
+milemp=0 sfu=0 mfu=0 mhu=0 civgq=0 milgq=0 Link=  source=SR14 Feedback not developed in 2017
+infodate=07/28/2017 spacesqft=86886 startdate=. compdate=. ressqft=0 nressqft=86886 created_us=RRI
+created_da=07/28/2017 devtypeid=7 city=Carlsbad old_siteid=0 status=not completed
+comment=In Progress _ERROR_=1 _N_=16
+NOTE: Invalid data for _civemp in line 18 41-45.
+NOTE: Invalid data for startdate in line 18 159-162.
+NOTE: Invalid data for compdate in line 18 164-167.
+18        1976,Palomar Forum Lot 5-6 Office,81130, NULL  ,0,0,0,0,0,0,delete according to Carlsbad
+      89   notes ,City of Carlsbad not developed in 2017 imagery,3/5/2009,81130,NULL,NULL,0,81130,
+     177  Unknown,12/14/2017,4,Carlsbad,2003,not completed,Completed  235
+siteid=1976 sitename=Palomar Forum Lot 5-6 Office _totalsqft=81130 _civemp=. milemp=0 sfu=0 mfu=0
+mhu=0 civgq=0 milgq=0 Link=delete according to Carlsbad notes
+source=City of Carlsbad not developed in 2017 imagery infodate=03/05/2009 spacesqft=81130
+startdate=. compdate=. ressqft=0 nressqft=81130 created_us=Unknown created_da=12/14/2017
+devtypeid=4 city=Carlsbad old_siteid=2003 status=not completed comment=Completed _ERROR_=1 _N_=17
+NOTE: Invalid data for _civemp in line 19 44-48.
+NOTE: Invalid data for startdate in line 19 152-155.
+NOTE: Invalid data for compdate in line 19 157-160.
+19        1975,Carlsbad: Palomar Forum Lots 6,179945, NULL  ,0,0,0,0,0,0,delete according to Carls
+      89  bad notes ,RRI. Not developed in 2017 imagery,2/27/2013,179945,NULL,NULL,0,179945,JHO,12
+     177  /14/2017,4,Carlsbad,2002,not completed,Completed 224
+siteid=1975 sitename=Carlsbad: Palomar Forum Lots 6 _totalsqft=179945 _civemp=. milemp=0 sfu=0
+mfu=0 mhu=0 civgq=0 milgq=0 Link=delete according to Carlsbad notes
+source=RRI. Not developed in 2017 imagery infodate=02/27/2013 spacesqft=179945 startdate=.
+compdate=. ressqft=0 nressqft=179945 created_us=JHO created_da=12/14/2017 devtypeid=4
+city=Carlsbad old_siteid=2002 status=not completed comment=Completed _ERROR_=1 _N_=18
+NOTE: Invalid data for _civemp in line 20 43-47.
+NOTE: Invalid data for startdate in line 20 149-152.
+NOTE: Invalid data for compdate in line 20 154-157.
+20        1057,Carlsbad: LCG Corporate Center,34904, NULL  ,0,0,0,0,0,0,delete according to Carlsb
+      89  ad notes ,RRI. Not developed in 2017 imagery,3/4/2013,34904,NULL,NULL,0,34904,JHO,12/14/
+     177  2017,4,Carlsbad,3203,not completed,Completed (Google Maps but might expand in the future
+     265   to other lots)  280
+siteid=1057 sitename=Carlsbad: LCG Corporate Center _totalsqft=34904 _civemp=. milemp=0 sfu=0
+mfu=0 mhu=0 civgq=0 milgq=0 Link=delete according to Carlsbad notes
+source=RRI. Not developed in 2017 imagery infodate=03/04/2013 spacesqft=34904 startdate=.
+compdate=. ressqft=0 nressqft=34904 created_us=JHO created_da=12/14/2017 devtypeid=4 city=Carlsbad
+old_siteid=3203 status=not completed
+comment=Completed (Google Maps but might expand in the future to other lots) _ERROR_=1 _N_=19
+NOTE: Invalid data for startdate in line 21 213-216.
+WARNING: Limit set by ERRORS= option reached.  Further errors of this type will not be printed.
+21        1065,Viasat Campus,143100,477,0,0,0,0,0,0,https://www.sandiegouniontribune.com/business/
+      89  technology/sd-fi-viasat-campusexpand-20190102-story.html,City of Carlsbad underconstruct
+     177  ion in 2017 imagery,3/2/2009,390000,NULL,12/31/2020,0,390000,Unknown,12/14/2017,4,Carlsb
+     265  ad,1636,not completed,Completed (might expand in future) 320
+siteid=1065 sitename=Viasat Campus _totalsqft=143100 _civemp=477 milemp=0 sfu=0 mfu=0 mhu=0
+civgq=0 milgq=0
+Link=https://www.sandiegouniontribune.com/business/technology/sd-fi-viasat-campusexpand-20190102-s
+tory.html source=City of Carlsbad underconstruction in 2017 ima infodate=03/02/2009
+spacesqft=390000 startdate=. compdate=12/31/2020 ressqft=0 nressqft=390000 created_us=Unknown
+created_da=12/14/2017 devtypeid=4 city=Carlsbad old_siteid=1636 status=not completed
+comment=Completed (might expand in future) _ERROR_=1 _N_=20
+NOTE: 182 records were read from the infile 'M:\RES\estimates & forecast\SR14 Forecast\Scheduled
+      Development\Non-residential Scheduled Development\non residential sched dev for the SCS
+      forecast employment 05142020.csv'.
+      The minimum record length was 29.
+      The maximum record length was 439.
+NOTE: The data set WORK.NON_RES_SCHED_DEV has 182 observations and 25 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.25 seconds
+      cpu time            0.15 seconds
+
+

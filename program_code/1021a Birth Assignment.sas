@@ -1,5 +1,5 @@
 /*
-Take total births from sql_de.coc_calendar_projections_2017
+Take total births from components of change projections
 and allocate to race/ages using birth rates
 */
 
@@ -33,13 +33,12 @@ run;
 proc sql;
 create table hp_fem(drop=i) as select x.*,monotonic() as b_id length=4
 from hp_fem_0 as x
-cross join (select * from sql_de.coc_calendar_projections_2017 where county_name = "San Diego" and calendar_yr = &yr) as y
+cross join (select * from sql_dof.&coc where county_name = "San Diego" and calendar_yr = &yr) as y
 where x.i <= y.births;
 quit;
 
 
 data sd.hp_fem_&yr; set hp_fem;run;
-/* data sd.cb_ra_5_&yr; set cb_ra_5;run; */
 
 %let t=%sysfunc(time(),time8.0);
 %put ========== Finished Birth Assignment for year &yr at &t;

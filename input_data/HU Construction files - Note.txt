@@ -1,0 +1,9 @@
+Originally, the file 'HU Construction and PPH projections.xlsx' was developed to take the DOF projections
+being used at the time and create and approximation of housing units needed while also obtaining target
+regional headship rates (set to equal 2010 regional headship rates by 2036) and a target vacancy rate of
+4.0% by 2040. 
+
+In January 2020, the DOF released dramatically lower population estimates for the region which that file did
+not appropriately adjust to (due to several hard-coded elements). The updated version,
+'HU Construction and PPH projections_Feb2020.xlsx' was used beginning in XPEF25 to develop new targets.
+This new version still uses the headship and vacancy targets originally intended.

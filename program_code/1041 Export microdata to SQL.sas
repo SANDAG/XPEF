@@ -1,12 +1,9 @@
-/* %let f2=2017; */
-/* %Unquote(%bquote(')est_&f2%bquote('));*/
-/* %put = %Unquote(%bquote(')est_&f2%bquote(')); */
 
 %macro m1;
 
 proc datasets library=work nolist; delete hp_0 hh_0 hu_0 gq_0;quit;
 
-%do yr=&by1 %to &yy3;
+%do yr=&by0 %to &yy3;
 
 proc sql;
 create table hh as select &yr as yr length=3 format=4.
@@ -19,7 +16,8 @@ create table hp as select &yr as yr length=3 format=4.
 ,hp_id format=8.
 ,age length=3 format=3.
 ,r format=$3.,hisp format=$2.,sex format=$1.
-,dob length=4 format=mmddyy10.,role format=$1.
+,dhms(dob,0,0,0) as dob format=datetime20.
+,role format=$1.
 from sd.hp_&yr;
 
 create table hu as select &yr as yr length=3 format=4.
@@ -33,7 +31,7 @@ create table gq as select &yr as yr length=3 format=4.
 ,gq_type format=$3.
 ,age length=3 format=3.
 ,r format=$3.,hisp format=$2.,sex format=$1.
-,dob length=4 format=mmddyy10.
+,dhms(dob,0,0,0) as dob format=datetime20.
 ,mgra format=5.,jur format=2.,cpa format=4.,ct format=$6.
 from sd.gq_&yr;
 
@@ -62,9 +60,9 @@ from hh_0
 group by yr;
 quit;
 
-
 proc sql;
 CONNECT TO ODBC(noprompt="driver=SQL Server; server=sql2014a8; database=isam; DBCOMMIT=10000; Trusted_Connection=yes;") ;
+
 EXECUTE ( drop table if exists isam.&xver..households; ) BY ODBC ; %PUT &SQLXRC. &SQLXMSG.;
 EXECUTE ( drop table if exists isam.&xver..housing_units; ) BY ODBC ; %PUT &SQLXRC. &SQLXMSG.;
 EXECUTE ( drop table if exists isam.&xver..household_population; ) BY ODBC ; %PUT &SQLXRC. &SQLXMSG.;
@@ -73,28 +71,104 @@ EXECUTE ( drop table if exists isam.&xver..gq_population; ) BY ODBC ; %PUT &SQLX
 EXECUTE ( drop table if exists isam.&xver..hp_aggregated; ) BY ODBC ; %PUT &SQLXRC. &SQLXMSG.;
 EXECUTE ( drop table if exists isam.&xver..hh_aggregated; ) BY ODBC ; %PUT &SQLXRC. &SQLXMSG.;
 
+
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..households(
+yr smallint
+,mgra smallint
+,jur tinyint
+,ct varchar(6)
+,size tinyint
+,hh_id int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..housing_units(
+yr smallint
+,mgra smallint
+,jur tinyint
+,cpa smallint
+,ct varchar(6)
+,du_type varchar(3)
+,sto_flag tinyint
+,hh_id int
+,hu_id int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..household_population(
+yr smallint
+,hh_id int
+,hp_id int
+,age tinyint
+,r varchar(3)
+,hisp varchar(2)
+,sex varchar(1)
+,dob datetime
+,role varchar(1)
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..gq_population(
+yr smallint
+,gq_id int
+,gq_type varchar(3)
+,age tinyint
+,r varchar(3)
+,hisp varchar(2)
+,sex varchar(1)
+,dob datetime
+,mgra smallint
+,jur tinyint
+,cpa smallint
+,ct varchar(6)
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..hp_aggregated(
+yr smallint
+,age tinyint
+,r varchar(3)
+,hisp varchar(2)
+,sex varchar(1)
+,hp int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..hh_aggregated(
+yr smallint
+,households int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+
 DISCONNECT FROM ODBC ;
 quit;
+
 
 options notes;
 
 proc sql;
-/*
-drop table sql_xpef.households;
-drop table sql_xpef.housing_units;
-drop table sql_xpef.household_population;
-drop table sql_xpef.gq_population;
 
-drop table sql_xpef.hp_aggregated;
-drop table sql_xpef.hh_aggregated;
-*/
-create table sql_xpef.households(bulkload=yes bl_options=TABLOCK) as select * from hh_0;
-create table sql_xpef.housing_units(bulkload=yes bl_options=TABLOCK) as select * from hu_0;
-create table sql_xpef.household_population(bulkload=yes bl_options=TABLOCK) as select * from hp_0;
-create table sql_xpef.gq_population(bulkload=yes bl_options=TABLOCK) as select * from gq_0;
+insert into sql_xpef.households(bulkload=yes bl_options=TABLOCK) select * from hh_0;
+insert into sql_xpef.housing_units(bulkload=yes bl_options=TABLOCK) select * from hu_0;
+insert into sql_xpef.household_population(bulkload=yes bl_options=TABLOCK) select * from hp_0;
+insert into sql_xpef.gq_population(bulkload=yes bl_options=TABLOCK) select * from gq_0;
 
-create table sql_xpef.hp_aggregated(bulkload=yes bl_options=TABLOCK) as select * from hp_aggregated;
-create table sql_xpef.hh_aggregated(bulkload=yes bl_options=TABLOCK) as select * from hh_aggregated;
+insert into sql_xpef.hp_aggregated(bulkload=yes bl_options=TABLOCK) select * from hp_aggregated;
+insert into sql_xpef.hh_aggregated(bulkload=yes bl_options=TABLOCK) select * from hh_aggregated;
 quit;
 
 options nonotes;

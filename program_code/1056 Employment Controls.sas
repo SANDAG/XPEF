@@ -1,14 +1,5 @@
 options nonotes;
 
-/*
-%let xver=xpef05;
-libname e1 "T:\socioec\Current_Projects\&xver\input_data";
-%let ecver=1192;
-*/
-
-/* version of the economic simulation */
-
-
 proc sql;
 CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
 
@@ -27,7 +18,7 @@ when sector_id in (23,25) then 15 /* education */
 else sector_id 
 end as sandag_industry_id
 from connection to odbc
-(select job_id,sector_id FROM [urbansim].[urbansim].[job_2016] as x)
+(select job_id,sector_id FROM [urbansim].[urbansim].[job] as x)
 ;
 
 /* get sectoral targets for future jobs*/
@@ -90,8 +81,6 @@ run;
 
 /* get growth in self employed */
 
-
-
 /* self employed will grow in proportion to private w&s jobs */
 
 proc sql;
@@ -112,17 +101,6 @@ create table se_2a as select * from se_2 where sej < sej_2016;
 
 create table se_2b as select * from se_2 where wsj < wsj_2016;
 quit;
-
-/*
-proc sql;
-create table priv_1 as select x.sandag_industry_id,x.yr,x.jobs, coalesce(y.gov_j,0) as gov_j, x.jobs - coalesce(y.gov_j,0) as priv_j
-from (select * from jf_2 where sandag_industry_id not in (21:27)) as x
-left join (select yr,sandag_industry_id,sum(j1) as gov_j from g_4 group by yr,sandag_industry_id) as y
-	on x.yr = y.yr and x.sandag_industry_id = y.sandag_industry_id
-order by yr,sandag_industry_id;
-quit;
-*/
-
 
 proc sql;
 create table employment_controls as

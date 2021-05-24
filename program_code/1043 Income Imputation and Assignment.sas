@@ -1,12 +1,3 @@
-/*libname e0 "T:\socioec\Current_Projects\estimates\input_data";*/
-
-/*
-%let list1= 2017:2050;
-%put &list1;
-*/
-
-/* option notes; */
-
 
 data inc_yr;length inc_yr 3;
 do inc_yr=&by1 to &yy3;
@@ -15,18 +6,7 @@ end;
 run;
 
 
-
 proc sql;
-/*
-create table acs_inc_cnt_1 as
-select x.inc_yr,y.inc16,y.est
-from inc_yr as x
-cross join (select * from e0.acs_inc_cnt_1 where est>0 and yr=2016) as y;
-
-create table acs_inc_cnt_2 as select *,est/sum(est) as f
-from acs_inc_cnt_1 group by inc_yr;
-*/
-
 create table acs_inc_ct_1 as
 select x.inc_yr,y.ct_id as ct,y.inc16,y.est
 from inc_yr as x
@@ -48,8 +28,6 @@ order by inc_yr,ct,inc16;
 quit;
 
 
-
-
 proc sql;
 create table acs_inc_ct_4 as select x.*,z.ct,coalesce(y.est,0) as est,coalesce(y.f,0) as f
 from (select distinct inc_yr,inc16 from acs_inc_ct_2) as x
@@ -58,35 +36,6 @@ left join acs_inc_ct_2 as y on x.inc_yr=y.inc_yr and z.ct=y.ct and x.inc16=y.inc
 order by inc_yr,ct,inc16;
 quit;
 
-/*
-proc sql;
-CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
-
-create table mgra_sra as select mgra_id,mgra,jurisdiction,jurisdiction_id as jur,coalesce(cpa_id,0) as cpa,sra
-from connection to odbc
-(select * FROM [demographic_warehouse].[dim].[mgra_denormalize] where series=13);
-
-disconnect from odbc;
-
-create table mgra_sra_test as select mgra,jur,cpa,count(*) as n
-from mgra_sra group by mgra,jur,cpa having calculated n>1;
-quit;
-
-proc sql;
-create table mgra_test_1 as select x.*
-from (select distinct mgra,jur,cpa from sql_xpef.housing_units) as x
-left join mgra_sra as y on x.mgra=y.mgra and x.jur=y.jur and x.cpa=y.cpa
-where y.mgra=.;
-quit;
-
-proc sql;
-create table mgra_test_2 as select x.*,y.*
-from (select distinct mgra from mgra_test_1) as x
-left join mgra_sra as y on x.mgra=y.mgra
-order by mgra;
-quit;
-*/
-
 
 proc sql;
 create table hh_2 as select x.yr as yr_id length=3 format=4.,x.hh_id length=5 format=7.
@@ -94,40 +43,25 @@ create table hh_2 as select x.yr as yr_id length=3 format=4.,x.hh_id length=5 fo
 from (select * from sql_xpef.households where yr in (&list1)) as x
 left join sql_xpef.housing_units as y on x.yr=y.yr and x.hh_id=y.hh_id;
 /*
-update hh_orig set cpa=0 where int(cpa/100) not in (14,19);
-update hh_orig set mgra=12923 where mgra=12927 and cpa=1915;
-update hh_orig set mgra=18216 where mgra=18213 and jur=15;
-
-create table cpa_test as select distinct cpa from hh_orig;
-
 mgra,cpa,jur
 5229,1429,14
 16080,1920,19
 18034,0,1
 19555,0,7
 
-
 all in cpa 1915
 19218,19224,19231,19271
-
 */
 quit;
 
 
 proc sql;
-/*
-create table hh_2 as select x.*, z.mgra_id length=5 format=9.
-from hh_orig as x
-left join mgra_sra as z on x.mgra=z.mgra and x.jur=z.jur and x.cpa=z.cpa;
-*/
-
 create table hh_02 as select yr_id,mgra,ct,jur,count(hh_id) as hh
 from hh_2 group by yr_id, mgra, ct, jur;
 
 create table hh_02a as select yr_id,sum(hh) as hh
 from hh_02 group by yr_id;
 quit;
-
 
 
 /* this table should have zero records */
@@ -142,12 +76,6 @@ order by ct,inc_yr;
 create table test_002 as select ct,count(ct) as n
 from test_001 group by ct order by n;
 quit;
-
-/*
-proc sql;
-create table test_003 as select distinct yr_id from hh_2;
-quit;
-*/
 
 proc sql;
 create table hh_3 as select *, yr_id as inc_yr length=3
@@ -169,13 +97,6 @@ left join acs_inc_ct_4 as y on x.inc_yr=y.inc_yr and "6073"||x.ct=y.ct
 order by yr_id,ct,hh0;
 quit;
 
-/*
-proc sql;
-create table ztest_001 as select * from hh_05 where inc16=.;
-quit;
-
-*/
-
 data hh_05a;set hh_05;by yr_id ct;retain hhc;
 if first.ct then do;hh1=min(hh0,hht);hhc=hh1;end;
 else if last.ct then do;hh1=hht-hhc;hhc=hh1+hhc;end;
@@ -193,14 +114,6 @@ do i=1 to hh1;
 	output;
 end;
 run;
-
-/*
-proc sql;
-create table ztest_001 as select * from hh_05b where inc=.;
-create table ztest_002 as select distinct ct from hh_05b where inc=.;
-quit;
-
-*/
 
 /* assigning an income category */
 proc sql;
@@ -224,7 +137,7 @@ CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection
 
 select cpi_2010 into :cpi2010
 from connection to odbc
-(select * FROM [socioec_data].[bls_su].[cpi_u_rs_1977_2017] where yr = 2016);
+(select * FROM [socioec_data].[bls_su].[cpi_u_rs_1977_&acs_yr] where yr = &acs_yr);
 
 create table income_group_id as select income_group_id,name,lower_bound,upper_bound
 from connection to odbc
@@ -254,27 +167,6 @@ create table hh_10 as select x.*
 from hh_8 as x
 left join income_group_id as y on y.lower_bound <= x.inc_2010 <= y.upper_bound;
 quit;
-
-/*
-proc sql;
-create table hh_10 as select x.yr_id as yr,y.mgra as mgra13
-,y.jur
-,x.inc_2010,x.income_group_id_2010
-from hh_9 as x
-inner join mgra_sra as y on x.mgra=y.mgra;
-
-create table hh_10b as select x.*,y.hh_10
-from (select yr_id,count(*) as hh_9 from hh_9 group by yr_id) as x
-left join (select yr,count(*) as hh_10 from hh_10 group by yr) as y
-on x.yr_id=y.yr;
-quit;
-*/
-
-/*
-proc sql;
-create table sd.household_income as select * from hh_10;
-quit;
-*/
 
 /* fetching household income */
 proc sql;
@@ -364,7 +256,21 @@ quit;
 
 proc datasets library=work nolist; delete hh_done;quit;
 
-data income_slots_1(drop=hh_inc);set hh_inc_1(rename=(mgra13=mgra));length inc_slot 3;
+/* Fill in missing income_group_ids with yearly jurisdiction avearge (rounded) */
+proc sql;
+create table hh_inc_fill as select 
+yr,jur,round(mean(income_group_id),1) as income_group_id
+from hh_inc_1
+group by yr,jur;
+
+create table hh_inc_2 as
+select a.yr, a.mgra13, a.jur,
+coalesce(a.income_group_id, b.income_group_id) as income_group_id, a.hh_inc
+from hh_inc_1 as a
+inner join hh_inc_fill as b on a.yr=b.yr and a.jur=b.jur;
+quit;
+
+data income_slots_1(drop=hh_inc);set hh_inc_2(rename=(mgra13=mgra));length inc_slot 3;
 do inc_slot=1 to hh_inc;output;end;
 run;
 
@@ -469,13 +375,11 @@ quit;
 %mend inc1;
 
 %inc1(mx=10);
-/* mx sets the max itirations */
-
-
+/* mx sets the max iterations */
 
 
 proc sql;
-create table hh_done_1 as select x.*,y.mgra as mgra13 /*,y.jur */
+create table hh_done_1 as select x.*,y.mgra as mgra13
 from hh_done as x
 inner join hh_0 as y on x.yr=y.yr and x.hh_id=y.hh_id
 order by yr,mgra13,jur,income_group_id,ranuni(1);
@@ -520,14 +424,6 @@ proc sql;
 create table hh_inc_01a as select yr,count(i) as n from hh_inc_01 group by yr;
 quit;
 
-/* do not use median function; for some reason, it doesn't work */
-/*
-proc sql;
-create table hh_done_2b as select yr,count(hh_id) as n,median(inc_2010) as medinc,mean(inc_2010) as avg from hh_done_2 group by yr;
-create table hh_done_2c as select yr,income_group_id_2010,count(hh_id) as n,median(inc_2010) as medinc,mean(inc_2010) as avg
-from hh_done_2 group by yr,income_group_id_2010;
-quit;
-*/
 
 data hh_done_3;set hh_done_2 hh_income_base;run;
 
@@ -539,38 +435,21 @@ var inc_2010;
 output out=hh_done_2_med median(inc_2010)=median_inc2010;
 run;
 
-/*
-proc sql;
-create table ztest_100 as select median(inc_yr) as medy from inc_yr;
-quit;
-*/
-
-
-/*
-data sh.hh_0_inc;set hh_done_2;run;
-data sh.hh_0;set hh_0;run;
-data sh.hu_0;set hu_0;run;
-data sh.hp_0;set hp_0;run;
-data sh.gq_0;set gq_0;run;
-*/
-
-/* drop hp_type from hp_0 */
-
-/*
-proc sql;
-drop table sql_est.household_income;
-drop table sql_est.households;
-drop table sql_est.housing_units;
-drop table sql_est.household_population;
-drop table sql_est.gq_population;
-quit;
-*/
-
 
 proc sql;
 CONNECT TO ODBC(noprompt="driver=SQL Server; server=sql2014a8; database=isam; DBCOMMIT=10000; Trusted_Connection=yes;") ;
 
 EXECUTE ( drop table if exists isam.&xver..household_income; ) BY ODBC ;
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..household_income(
+yr smallint
+,hh_id int
+,income_group_id_2010 tinyint
+,inc_2010 int
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
 
 DISCONNECT FROM ODBC ;
 quit;
@@ -578,15 +457,7 @@ quit;
 options notes;
 
 proc sql;
-/*drop table sql_xpef.household_income;*/
-create table sql_xpef.household_income(bulkload=yes bl_options=TABLOCK) as select * from hh_done_3;
+insert into sql_xpef.household_income(bulkload=yes bl_options=TABLOCK) select * from hh_done_3;
 quit;
 
 options nonotes;
-
-/*
-proc sql;
-drop table sql_est.test;
-create table sql_est.test(bulkload=yes bl_options=TABLOCK) as select * from hh_done_2(obs=10);
-quit;
-*/

@@ -1,7 +1,13 @@
-%let xver=xpef06;
+/* References the 'Variables and Libaries' file */
+%let a=%sysget(SAS_EXECFILEPATH);
+%let b=%sysget(SAS_EXECFILENAME);
+%let valib=%sysfunc(tranwrd(&a,&b,_ Variables and Libraries.sas));
+%include "&valib";
 
+/* Creates a schema in the isam database named after the current folder */
 proc sql;
 CONNECT TO ODBC(noprompt="driver=SQL Server; server=sql2014a8; database=isam; DBCOMMIT=10000; Trusted_Connection=yes;") ;
+
 EXECUTE(
 IF NOT EXISTS (
 SELECT  schema_name
@@ -13,53 +19,29 @@ EXEC sp_executesql N%Unquote(%bquote(')CREATE SCHEMA &xver%bquote('))
 END
 ) BY ODBC ;
   %PUT &SQLXRC. &SQLXMSG.;
+  
 DISCONNECT FROM ODBC ;
 quit;
 
+/* Maps a copy of the mgra_id table from the current estimates version */
+proc sql;
+CONNECT TO ODBC(noprompt="driver=SQL Server; server=sql2014a8; DBCOMMIT=10000; Trusted_Connection=yes;") ;
 
-libname sql_xpef odbc noprompt="driver=SQL Server; server=sql2014a8; database=isam;
-Trusted_Connection=yes" schema=&xver;
+create table mgra_id_new as select *
+from connection to odbc 
+(
+SELECT mgra_id, mgra, jurisdiction_id, cpa_id, jurisdiction, cpa
+FROM [estimates].[&estver].[mgra_id]
+);
 
-libname xpef_p odbc noprompt="driver=SQL Server; server=sql2014a8; database=isam;
-Trusted_Connection=yes" schema=xpef04;
+disconnect from odbc;
+quit;
 
-/* copying mgra_id_new from a previous version */
-
+/* Place the mgra_id table into the new schema in isam */
 proc sql;
 drop table sql_xpef.mgra_id_new;
 
-create table sql_xpef.mgra_id_new(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.mgra_id_new;
-quit;
-
-/*
-
-proc sql;
-drop table sql_xpef.hh_aggregated;
-drop table sql_xpef.hp_aggregated;
+create table sql_xpef.mgra_id_new(bulkload=yes bl_options=TABLOCK) as select * from mgra_id_new;
 quit;
 
 
-
-proc sql;
-create table sql_xpef.abm_syn_households(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.abm_syn_households;
-
-create table sql_xpef.abm_syn_persons(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.abm_syn_persons;
-
-create table sql_xpef.gq_population(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.gq_population;
-
-create table sql_xpef.hh_aggregated(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.hh_aggregated;
-
-create table sql_xpef.household_income(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.household_income;
-
-create table sql_xpef.household_income_upgraded(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.household_income_upgraded;
-
-create table sql_xpef.household_population(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.household_population;
-
-create table sql_xpef.households(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.households;
-
-create table sql_xpef.housing_units(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.housing_units;
-
-create table sql_xpef.hp_aggregated(bulkload=yes bl_options=TABLOCK) as select * from xpef_p.hp_aggregated;
-quit;
-
-*/
