@@ -1,20 +1,5 @@
 %include "T:\socioec\Current_Projects\&xver\program_code\1055a Data Prep for Synthetic Households.sas";
 
-/* libname sd "T:\socioec\Current_Projects\&xver\simulation_data\"; */
-
-/*libname sh1 "T:\socioec\Current_Projects\Synthetic Households\";*/
-
-/*libname sql_dc odbc noprompt="driver=SQL Server; server=sql2014a8; database=data_cafe; Trusted_Connection=yes" schema=ref;*/
-/*libname sql_dim odbc noprompt="driver=SQL Server; server=sql2014a8; database=demographic_warehouse;
-Trusted_Connection=yes" schema=dim;*/
-
-/*
-options set=SAS_HADOOP_RESTFUL 1;
-
-libname xpef odbc noprompt="driver=SQL Server; server=sql2014a8; database=isam;
-Trusted_Connection=yes" schema=xpef03;*/
-
-
 /* load households and people */
 /* xpef.household_income_upgraded containes only certain years
 (defined in global macro list1 in "1043 Income Imputation and Assignment.sas" 
@@ -76,13 +61,6 @@ when x.age<=59 then 3599 end as age4 length=3 format=4.
 from sql_xpef.gq_population(drop=jur dob) as x
 inner join (select distinct yr from hh_0) as y on x.yr=y.yr;
 quit;
-
-/*
-proc sql;
-create table test_01 as select * from hh_0 where hh_income_cat_id=.;
-create table test_02 as select * from hh_0 where hh_income_cat_id^=.;
-quit;
-*/
 
 
 proc sql;
@@ -156,12 +134,6 @@ create table gq_h as select yr length=3 format=4.
 ,mgra length=4 from gq_0;
 quit;
 
-/*
-proc sql;
-select max(inc_2010) from hh_0;
-quit;
-*/
-
 
 data hh_01;set hh_0a gq_h;
 informat yr hh_id type size inc_2010 hh_income_cat_id inc10 mgra;
@@ -177,8 +149,8 @@ create table hp_age8_1 as select x.*
 ,coalesce(y.f,z.f) as f
 ,round(calculated f * p,1) as p_school
 from hp_age8_0 as x
-left join tab_senr_ct5_2 as y on /*x.yr=y.yr_est and*/ x.ct=y.ct and x.age8=y.age8 and x.sex=y.sex
-left join tab_senr_cn5_2 as z on /*x.yr=z.yr_est and*/ x.age8=z.age8 and x.sex=z.sex;
+left join tab_senr_ct5_2 as y on x.ct=y.ct and x.age8=y.age8 and x.sex=y.sex
+left join tab_senr_cn5_2 as z on x.age8=z.age8 and x.sex=z.sex;
 
 create table hp_age8_1a as select * from hp_age8_1 where f=.;
 create table hp_age8_1b as select * from hp_age8_1 where f_ct=.;
@@ -230,8 +202,8 @@ create table hp_age4_1 as select x.*
 ,coalesce(y.f,z.f) as f
 ,round(calculated f * p,1) as p_college
 from hp_age4_0 as x
-left join tab_cenr_ct5_2 as y on /*x.yr=y.yr_est and*/ x.ct=y.ct and x.age4=y.age4 and x.sex=y.sex
-left join tab_cenr_cn5_2 as z on /*x.yr=z.yr_est and*/ x.age4=z.age4 and x.sex=z.sex;
+left join tab_cenr_ct5_2 as y on x.ct=y.ct and x.age4=y.age4 and x.sex=y.sex
+left join tab_cenr_cn5_2 as z on x.age4=z.age4 and x.sex=z.sex;
 
 create table hp_age4_1a as select * from hp_age4_1 where f=.;
 create table hp_age4_1b as select * from hp_age4_1 where f_ct=.;
@@ -278,13 +250,13 @@ quit;
 proc sql;
 create table hp_school_2b as select x.yr,x.age8,x.pct_in_school,y.f as pct_acs format=percent8.1
 from hp_school_2a as x
-inner join tab_senr_cn5_3a as y on /*x.yr=y.yr_est and*/ x.age8=y.age8
+inner join tab_senr_cn5_3a as y on x.age8=y.age8
 where x.age8^=. and y.enr_school=1
 order by yr,age8;
 
 create table hp_college_2b as select x.yr,x.age4,x.pct_in_college,y.f as pct_acs format=percent8.1
 from hp_college_2a as x
-inner join tab_cenr_cn5_3a as y on /*x.yr=y.yr_est and*/ x.age4=y.age4
+inner join tab_cenr_cn5_3a as y on x.age4=y.age4
 where x.age4^=. and y.enr_college=1
 order by yr,age4;
 quit;
@@ -335,9 +307,6 @@ from tp_1 group by yr;
 quit;
 
 
-
-
-
 proc sql;
 create table hp_age1619_0 as select yr,ct,sex,in_school,type,count(id) as hp
 from tp_1 where age in (16:19) and type="HHP" group by yr,ct,sex,in_school,type;
@@ -353,8 +322,8 @@ create table hp_age1619_1 as select x.*
 ,ceil(calculated f * x.hp) as hp_stat1
 
 from hp_age1619_0a as x
-left join tab_stat1_ct5_2 as y on /*x.yr=y.yr_est and*/ x.ct=y.ct and x.sex=y.sex and x.in_school=y.in_school and x.stat1=y.stat1
-left join tab_stat1_cn5_2 as z on /*x.yr=z.yr_est and*/ x.sex=z.sex and x.in_school=z.in_school and x.stat1=z.stat1
+left join tab_stat1_ct5_2 as y on x.ct=y.ct and x.sex=y.sex and x.in_school=y.in_school and x.stat1=y.stat1
+left join tab_stat1_cn5_2 as z on x.sex=z.sex and x.in_school=z.in_school and x.stat1=z.stat1
 order by yr,ct,sex,in_school,stat1, f desc;
 
 create table hp_age1619_1a as select * from hp_age1619_1 where f=.;
@@ -462,7 +431,7 @@ from tp_2a group by yr,sex,in_school;
 create table tp_2c as select x.*,y.f as pct_acs format=percent8.1,y.p_acs
 ,x.pct - y.f as d format=percent8.1
 from tp_2b as x
-inner join tab_stat1_cn5_2 as y on /*x.yr=y.yr_est and*/ x.sex=y.sex and x.in_school=y.in_school and x.stat1=y.stat1
+inner join tab_stat1_cn5_2 as y on x.sex=y.sex and x.in_school=y.in_school and x.stat1=y.stat1
 order by abs(d) desc;
 quit;
 
@@ -508,8 +477,8 @@ create table hp_age2099_1 as select x.*
 /* when any of the GQ are present, use the county-wide distribution
 otherwise, use ct-specific distribution (if available) */
 from hp_age2099_0a as x
-left join tab_wstat_ct5_2 as y on /*x.yr=y.yr_est and*/ x.ct=y.ct and x.sex=y.sex and x.age13=y.age13 and x.wstat_new=y.wstat_new
-left join tab_wstat_cn5_2 as z on /*x.yr=z.yr_est and*/ x.sex=z.sex and x.age13=z.age13 and x.wstat_new=z.wstat_new
+left join tab_wstat_ct5_2 as y on x.ct=y.ct and x.sex=y.sex and x.age13=y.age13 and x.wstat_new=y.wstat_new
+left join tab_wstat_cn5_2 as z on x.sex=z.sex and x.age13=z.age13 and x.wstat_new=z.wstat_new
 order by yr,ct,sex,age13,wstat_new, f desc;
 
 create table hp_age2099_1a as select * from hp_age2099_1 where f=.;
@@ -588,37 +557,6 @@ create table inp_a_0 as select i,a,h from inp_a_00 order by i,a;
 create table inp_b_0 as select i,b,h from inp_b_00 order by i,b;
 quit;
 
-/*
-proc sql;
-create table test_01 as select x.*,y.*,z.*
-from (select count(distinct i) as a from inp_a_0) as x
-cross join (select count(distinct i) as b from inp_b_0) as y
-cross join (select count(distinct i) as ab from inp_ab_m_0) as z;
-quit;
-
-proc sql;
-create table test_01a as select a,substr(i,1,4) as yr,sum(h) as h
-from inp_a_0 group by a,yr;
-quit;
-*/
-
-/*
-proc sql;
-delete from inp_a_0 where substr(i,5,6)^="000100";
-delete from inp_b_0 where substr(i,5,6)^="000100";
-delete from inp_ab_m_0 where substr(i,5,6)^="000100";
-quit;
-*/
-
-/*
-proc sql;
-create table test_02 as select x.*,y.*,z.*
-from (select count(distinct i) as a from inp_a_0) as x
-cross join (select count(distinct i) as b from inp_b_0) as y
-cross join (select count(distinct i) as ab from inp_ab_m_0) as z;
-quit;
-*/
-
 /* these table should have zero records */
 proc sql;
 create table inp_A_0_test as select i,A,count(i) as c from inp_A_0 group by i,A having calculated c>1;
@@ -633,17 +571,11 @@ quit;
 
 %include "T:\socioec\Demographic_Model\Work\ipf\new ipf.sas";
 
-/*%include "T:\socioec\Demographic_Model\Work\ipf\new ipf 2.sas";*/
-
 %include "T:\socioec\Demographic_Model\Work\ipf\postipf.sas";
 
 options nonotes;
 %ipf1(mx=100);
 /* sets the number of iterations */
-
-/*%ipf2(mx=100, p=0.001);*/
-/* sets the number of iterations and precision */
-
 
 %postipf;
 options notes;
@@ -676,7 +608,7 @@ create table hp_wstat_1 as select yr,ct,sex,age13,hh_income_cat_id,id
 when age13 in (6569,7074,7599) then ranuni(2040) + (100-age) /* younger ages first (in descending order ) */
 /* this ensures that older ages are put into NILF 
 wstat_new is dispatched in the following order: 1-Employed, 2-Unemployed, 6-NILF, 9-Military 
-(there is no military for 65+ */
+(there is no military for 65+) */
 else ranuni(2040)
 end as sort_order
 from tp_2 where age>19 and type in ("HHP") order by yr,ct,sex,age13,hh_income_cat_id,sort_order desc;
@@ -731,11 +663,9 @@ create table tp_3_test_3 as select yr,in_school,in_college,grade_id,wstat_new,co
 from tp_3 group by yr,in_school,in_college,grade_id,wstat_new;
 quit;
 
-
 /*
 some in wstat_new=1 (if age in (16:19) and stat1=6) need to be reclassified as Military (wstat_new=9)
 */
-
 
 /*
 1 NILF HS NoGrad
@@ -749,7 +679,6 @@ some in wstat_new=1 (if age in (16:19) and stat1=6) need to be reclassified as M
 20 Unemployed student
 30 Employed student
 */
-
 
 
 proc sql;
@@ -781,9 +710,6 @@ from mil_6;
 create table mil_7a as select yr_est,sum(mil_acs) as mil_acs,sum(mil_1819a) as mil_1819a,sum(mil_1819b) as mil_1819b
 from mil_7 group by yr_est;
 quit;
-
-
-
 
 /*
 Assign military for 18-19
@@ -853,15 +779,6 @@ proc sql;
 create table test_01 as select age9,yr,count(id) as p
 from tp_4 where type="COL" group by age9,yr;
 quit;
-
-/*
-proc sql;
-create table tp_4b as select * from tp_4 where type="MIL" and wstat_new^=9;
-quit; 
-*/
-
-
-/* put(weeks_worked_id,z2.)||"_"||put(hours_worked,z2.)||"_"||put(educ_id,z2.)||"_"||occ as wheo */
 
 /* Table sh.sd_pums_margins_1 is created in "T:\socioec\Current_Projects\Synthetic Households\PUMS Margins 1.sas" */
 /* Table sh.sd_pums_margins_2 is created in "T:\socioec\Current_Projects\Synthetic Households\PUMS Margins 2.sas" */
@@ -936,32 +853,11 @@ create table test_wheo as select distinct wheo from wheo_4 where wstat_new=1 and
 quit;
 
 
-/*
-proc sql;
-create table test_01 as select sex,grade_id,wstat_new,hh_income_cat_id
-,sum(n) as n
-from wheo_1 where age9=1924
-group by sex,grade_id,wstat_new,hh_income_cat_id;
-quit;
-
-proc transpose data=test_01 out=test_02(drop=_name_);by sex grade_id wstat_new;var n;id hh_income_cat_id;run;
-*/
-
-
 proc sql;
 create table tp_5(drop=rn age9) as select x.*
 ,case 
 when x.age9=0015 or x.type in ("INS","OTH") then "05_00_01_"
-
-/*
-This is a remnant of old code; disabled on 9/29/2017
-when x.stat1 in (1,4,10) then "05_00_01_" 
-when x.stat1 in (2,5,20) then "05_00_01_" 
-*/
-/* stat1 in (1,4,10) NILF ages1619 */
-/* stat1 in (2,5,20 Unemployed ages1619 */
-
-when x.type="MIL" or (/*x.age=18 and*/ x.wstat_new=9) then "05_35_09_ML"
+when x.type="MIL" or (x.wstat_new=9) then "05_35_09_ML"
 else y.wheo end as wheo
 from tp_4 as x
 left join wheo_4 as y on x.sex=y.sex and x.age9=y.age9 and x.grade_id=y.grade_id and x.hh_income_cat_id=y.hh_income_cat_id
@@ -988,15 +884,15 @@ from tp_5 group by wstat_new,occ;
 quit;
 
 
-PROC IMPORT OUT=abm_p_0 DATAFILE="T:\ABM\release\ABM\archive\version_13_3_1\input\2012\persons.csv"
+PROC IMPORT OUT=abm_p_0 DATAFILE="T:\ABM\release\ABM\version_13_3_2\input\2012\persons.csv"
 DBMS=CSV REPLACE; GETNAMES=YES; DATAROW=2;
 RUN; 
 
-PROC IMPORT OUT=abm_h_0 DATAFILE="T:\ABM\release\ABM\archive\version_13_3_1\input\2012\households.csv"
+PROC IMPORT OUT=abm_h_0 DATAFILE="T:\ABM\release\ABM\version_13_3_2\input\2012\households.csv"
 DBMS=CSV REPLACE; GETNAMES=YES; DATAROW=2;
 RUN; 
 
-PROC IMPORT OUT=abm_lu_0 DATAFILE="T:\ABM\release\ABM\archive\version_13_3_1\input\2012\mgra13_based_input2012.csv"
+PROC IMPORT OUT=abm_lu_0 DATAFILE="T:\ABM\release\ABM\version_13_3_2\input\2012\mgra13_based_input2012.csv"
 DBMS=CSV REPLACE; GETNAMES=YES; DATAROW=2;
 RUN; 
 
@@ -1108,7 +1004,6 @@ end as rac1p length=3
 when y.hisp="H" then 2 else 1 end as hisp length=3
 from tp_5 as x
 left join tp_0 as y on x.yr=y.yr and x.id=y.id
-/* left join tp_5_2 as z on x.yr=z.yr and x.id=z.id */
 where x.type in ("INS","OTH");
 quit;
 
@@ -1123,7 +1018,6 @@ from tp_6 where wstat=1 group by yr,hh_id;
 quit;
 
 /* Need to ramdomly select non-military working White Collar people and assign them to a military industry (indcen=9770) */
-
 proc sql;
 create table mil_wc_0 as select yr,id
 from tp_6 where miltary=0 and wstat=1 and occ="WC" and type="HHP" and weeks=1 and hours=35
@@ -1156,16 +1050,14 @@ yr length=3 format=4.
 ,id length=5 format=8.
 ,type
 /* do not include in final */
-
 /* variable sequence gleaned from "T:\ABM\release\ABM\version_13_3_1\input\2012\persons.csv" */
-
 ,hhid format=7./*sequential household id*/
 ,perid format=7./*sequential person id */
 ,0 as household_serial_no length=3 format=1./* original id from pums; use 0 */
 ,pnum length=3 format=2./*sequence of persons within household */
 ,age length=3 format=3.
 ,sex length=3 format=1.
-,miltary /*as military*/ length=3 format=1.
+,miltary length=3 format=1.
 
 ,case
 WHEN age < 16 then 4
@@ -1218,9 +1110,7 @@ yr length=3 format=4.
 ,id length=5 format=8.
 ,type
 /* do not include in final */
-
 /* variable sequence gleaned from "T:\ABM\release\ABM\version_13_3_1\input\2012\persons.csv" */
-
 ,hhid length=5 format=7./*sequential household id*/
 ,perid length=5 format=7./*sequential person id */
 ,0 as household_serial_no length=3 format=1./* original id from pums; use 0 */
@@ -1284,7 +1174,7 @@ create table test_01 as select yr,weeks,hours,count(*) as n
 from tp_6 group by yr,weeks,hours;
 
 create table test_02 as select yr,occsoc5,count(*) as n
-from persons_1 where pemploy in (1,2) and military=0 group by yr,occsoc5;
+from persons_1 where pemploy in (1,2) and miltary=0 group by yr,occsoc5;
 
 create table ptype_test as select yr,ptype,count(*) as n
 from persons_1 group by yr,ptype order by ptype,yr;
@@ -1292,14 +1182,6 @@ from persons_1 group by yr,ptype order by ptype,yr;
 create table pemploy_test as select * from persons_1 where pemploy=.;
 quit;
 
-
-/*
-proc sql;
-create table mgra_taz as select mgra_13 as mgra,taz_13 as taz,luz_13 as luz,sra_1990 as sra
-from sql_dc.vi_xref_geography_mgra_13
-order by mgra;
-quit;
-*/
 
 proc sql;
 CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
@@ -1315,16 +1197,6 @@ quit;
 data mgra_taz;set mgra_taz;
 informat mgra taz luz sra;
 run;
-
-/*
-proc sql;
-select max(luz) as maz_luz,max(sra) as max_sra from mgra_taz;
-quit;
-*/
-
-
-
-
 
 proc import out=pov_0 datafile="T:\socioec\Current_Projects\Popsyn_Related\Federal Poverty Thresholds (2010).xlsx"
 replace dbms=excelcs;sheet="SAS";run;
@@ -1342,12 +1214,6 @@ from pov_2 group by hh_size,hh_age,related_children
 having calculated c>1;
 quit;
 
-/*
-proc sql;
-create table inc10 as select income_group_id - 10 as inc10,lower_bound,upper_bound
-from sql_dim.income_group where constant_dollars_year=2010;
-quit;
-*/
 
 proc sql;
 CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
@@ -1419,14 +1285,6 @@ create table unit_type_test_2 as select du_type,yr,hu
 from unit_type_test_1 where yr in (2017,2018,2050) order by du_type,yr;
 quit;
 
-/*
-proc sql;
-create table units_type_1 as select x.yr,x.hh_id,y.hu_id,coalesce(z.du_type2,y.du_type) as du_type3
-from xpef.households as x
-inner join xpef.housing_units as y on x.yr=y.yr and x.hh_id=y.hh_id
-left join xpef.housing_units_sf as z on y.hu_id=z.hu_id;
-quit;
-*/
 
 proc sql;
 create table units_type_1 as select x.yr,x.hh_id,y.hu_id,y.du_type as du_type3
@@ -1442,7 +1300,6 @@ x.yr length=3 format=4.
 ,x.hh_id length=5 format=8.
 ,u.ct
 /* do not include in final */
-
 /* variable sequence gleaned from "T:\ABM\release\ABM\version_13_3_1\input\2012\households.csv" */
 ,z.hhid format=7.
 ,0 as household_serial_no length=3 format=1.
@@ -1509,14 +1366,16 @@ quit;
 
 proc sql;
 create table p_len_1 as select
-max(hh_id) as hh_id format=comma12.
+max(yr) as yr
+,max(hh_id) as hh_id format=comma12.
 ,max(id) as id format=comma12.
 ,max(hhid) as hhid format=comma12.
 ,max(perid) as perid
 ,max(household_serial_no) as household_serial_no
 ,max(pnum) as pnum
+,max(age) as age
 ,max(sex) as sex
-,max(military) as military
+,max(miltary) as miltary
 ,max(pemploy) as pemploy
 ,max(pstudent) as pstudent
 ,max(ptype) as ptype
@@ -1535,13 +1394,21 @@ quit;
 
 proc sql;
 create table h_len_1 as select
-max(hinccat1) as hinccat1
+max(yr) as yr
+,max(hh_id) as hh_id
+,max(household_serial_no) as household_serial_no
+,max(taz) as taz
+,max(mgra) as mgra
+,max(hinccat1) as hinccat1
+,max(hinc) as hinc
 ,max(hworkers) as hworkers
-,min(poverty) as min_poverty
-,max(poverty) as max_poverty
-
-,max(taz) as max_taz
-,max(mgra) as max_mgra
+,max(veh) as veh
+,max(persons) as persons
+,max(hht) as hht
+,max(bldgsz) as bldgsz
+,max(unittype) as unittype
+,max(version) as version
+,max(poverty) as poverty
 from households_1;
 quit;
 
@@ -1568,33 +1435,75 @@ data sd.persons_1_gq;set persons_1_gq;run; /* includes only GQ OTH and INS */
 data sd.households_1_gq;set households_1_gq;run; /* includes only GQ OTH and INS */
 
 
-proc sql;
-drop table sql_xpef.abm_syn_persons;
-drop table sql_xpef.abm_syn_households;
 
-create table sql_xpef.abm_syn_persons(bulkload=yes bl_options=TABLOCK) as select * from persons_1;
-create table sql_xpef.abm_syn_households(bulkload=yes bl_options=TABLOCK) as select * from households_1;
+proc sql;
+CONNECT TO ODBC(noprompt="driver=SQL Server; server=sql2014a8; database=isam; DBCOMMIT=10000; Trusted_Connection=yes;") ;
+
+EXECUTE ( drop table if exists isam.&xver..abm_syn_persons; ) BY ODBC ; %PUT &SQLXRC. &SQLXMSG.;
+EXECUTE ( drop table if exists isam.&xver..abm_syn_households; ) BY ODBC ; %PUT &SQLXRC. &SQLXMSG.;
+
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..abm_syn_persons(
+yr smallint
+,hh_id int
+,id int
+,type varchar(3)
+,hhid int
+,perid int
+,household_serial_no tinyint
+,pnum tinyint
+,age tinyint
+,sex tinyint
+,miltary tinyint
+,pemploy tinyint
+,pstudent tinyint
+,ptype tinyint
+,educ tinyint
+,grade tinyint
+,occen5 tinyint
+,occsoc5 varchar(7)
+,indcen smallint
+,weeks tinyint
+,hours tinyint
+,rac1p tinyint
+,hisp tinyint
+,version tinyint
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+EXECUTE
+(
+CREATE TABLE isam.&xver..abm_syn_households(
+yr smallint
+,hh_id int
+,ct varchar(6)
+,hhid int
+,household_serial_no tinyint
+,taz smallint
+,mgra smallint
+,hinccat1 tinyint
+,hinc int
+,hworkers tinyint
+,veh tinyint
+,persons tinyint
+,hht tinyint
+,bldgsz tinyint
+,unittype tinyint
+,version tinyint
+,poverty numeric(6,3)
+) WITH (DATA_COMPRESSION = PAGE)
+) BY ODBC; %PUT &SQLXRC. &SQLXMSG.;
+
+insert into sql_xpef.abm_syn_persons(bulkload=yes bl_options=TABLOCK) select * from persons_1;
+insert into sql_xpef.abm_syn_households(bulkload=yes bl_options=TABLOCK) select * from households_1;
 quit;
 
 options nonotes;
-
-/*
-proc sql;
-create table ztest_01 as select yr,count(*) as n
-from sql_xpef.abm_syn_persons group by yr;
-quit;
-*/
-
-
-
-
-/* when age9=0015 then wheo="05_00_01_" */
-/* ,case when wstat_new in  (3,6) then "05_00_01_" else wheo end as wheo */
 
 /*
 "military" industries
 when indcen in (9670,9680,9690,9770,9780,9790,9870)
 crosstab occsoc5 with military industries
 */
-
-

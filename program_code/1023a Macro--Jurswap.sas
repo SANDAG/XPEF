@@ -137,6 +137,3 @@ quit;
 %put ========== Finished macro jurswap for year &yr at &t;
 
 %mend jurswap;
-
-
-

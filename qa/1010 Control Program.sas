@@ -200,14 +200,14 @@ gq_id gq_type jur ct cpa mgra age r r7 hisp sex dob;
 run;
 
 /* creates sd.dof_update and sd.ludu */
-%include "T:\socioec\Current_Projects\&xver\program_code\1013 Scenario (hu from urbansim).sas";
-
+%include "T:\socioec\Current_Projects\&xver\qa\1013 Scenario (hu from urbansim).sas";
+/*
 %include "T:\socioec\Current_Projects\&xver\program_code\1014 Jurisdiction HP controls.sas";
 
 %include "T:\socioec\Current_Projects\&xver\program_code\1015 Target hh distribution.sas";
 
-%include "T:\socioec\Current_Projects\&xver\program_code\1020 Annual cycle.sas"; /* contains macro forecast */
-
+%include "T:\socioec\Current_Projects\&xver\program_code\1020 Annual cycle.sas"; *//* contains macro forecast */
+/*
 %macro xpef;
 %do yr=&by1 %to &yy2;
 	%forecast (yr=&yr);
@@ -231,7 +231,7 @@ run;
 %include "T:\socioec\Current_Projects\&xver\program_code\1058 Incorporating employment events.sas";
 
 %include "T:\socioec\Current_Projects\&xver\program_code\2000 Assembling ABM forecast data.sas";
-
+*/
 options notes;
 
 %let t02=%sysfunc(time(),time8.0);

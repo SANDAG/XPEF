@@ -1,5 +1,4 @@
 
-
 %macro impacs;
 %let l = %sysfunc(countw(&list2));
 
@@ -34,7 +33,6 @@ quit;
 
 %let list2 = B23001 B23022 B23026 C24060 B15001 B14004 B14005 B14003;
 %impacs;
-
 
 
 proc sql;
@@ -837,4 +835,3 @@ from tab_wstat_ct5_1 group by ct,sex,age13;
 quit;
 
 /*------------------------*/
-
