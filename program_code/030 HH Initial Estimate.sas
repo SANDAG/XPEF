@@ -1,46 +1,35 @@
+/* References the 'Variables and Libaries' file */
+%let a=%sysget(SAS_EXECFILEPATH);
+%let b=%sysget(SAS_EXECFILENAME);
+%let valib=%sysfunc(tranwrd(&a,&b,_ Variables and Libraries.sas));
+%include "&valib";
 
-%let xver=xpef06;
-
-libname sql_est odbc noprompt="driver=SQL Server; server=sql2014a8; database=estimates;
-Trusted_Connection=yes" schema=est_2017_04;
-
-libname e1 "T:\socioec\Current_Projects\&xver\input_data";
-
-libname pdsr odbc noprompt="driver=SQL Server; server=sql2014a8; database=isam;
-Trusted_Connection=yes" schema=demographic_rates;
-
-
+/* This step takes the GQ population from the estimates, but uses 2017 for Coronado */
+/* This is because in 2018 there was a deployed ship, which lowered the GQ estimate for that year */
+/* If the base year were to be changed, the overwrite could be removed */
 proc sql;
-create table rh as select distinct r,hisp from sql_est.hp_aggregated;
-create table r7 as select distinct r7 from e1.Dof_pop_proj_r7_age102;
+create table gq_baseyear_0 as
+select * from sql_est.gq_population(drop=dob) where yr = &by1 and jur <> 3
+	union all
+select * from sql_est.gq_population(drop=dob) where yr = &by1 -1  and jur = 3;
 quit;
 
+/* Combines DOF total pop with GQ estimates to create household pop */
 proc sql;
-create table gq_base as select 
-case
-when hisp="H" then "H"
-when r="R10" then "W"
-when r="R02" then "B"
-when r="R03" then "I"
-when r="R04" then "S"
-when r="R05" then "P"
-when r="R06" then "M" /* Other becomes Multiple */
-when r="R07" then "M"
-end as r7
-,sex,age,count(gq_id) as gq
-from sql_est.gq_population where yr=2017
+create table gq_base as select r7,sex,age,count(gq_id) as gq
+from gq_baseyear_0
 group by r7,sex,age;
 
 create table p_1 as select x.yr
 ,coalesce(x.r7,y.r7) as r7
 ,coalesce(x.sex,y.sex) as sex
-,coalesce(x.age102,y.age) as age
+,coalesce(x.age101,y.age) as age
 ,x.p_cest as tp
 ,coalesce(y.gq,0) as gq
 ,x.p_cest - coalesce(y.gq,0) as hp
-from e1.Dof_pop_proj_r7_age102 as x
-full join gq_base as y on x.r7=y.r7 and x.sex=y.sex and x.age102=y.age
-where x.yr>2017;
+from e1.Dof_pop_proj_r7_age101 as x
+full join gq_base as y on x.r7=y.r7 and x.sex=y.sex and x.age101=y.age
+where x.yr > &by1;
 
 create table p_1a as select * from p_1 where tp=. or hp=.;
 create table p_1b as select * from p_1 where hp<0 order by yr,age;
@@ -61,24 +50,22 @@ quit;
 proc transpose data=p_2 out=p_2a(drop=_name_);by sex age;var gq;id r7;run;
 
 proc sql;
-create table gq_2017_1 as select x.*
-from (select * from sql_est.gq_population where yr=2017) as x
-inner join p_1c as y on x.sex=y.sex and x.age=y.age
-where x.r in ("R06","R07") and x.hisp="NH"
+create table gq_baseyear_1 as select x.*
+from (select * from gq_baseyear_0) as x
+inner join p_1c as y on x.sex=y.sex and x.age=y.age and x.r7=y.r7
 order by sex,age,gq_id;
 quit;
 
-data gq_2017_2;set gq_2017_1;by sex age;retain i;
+data gq_baseyear_2;set gq_baseyear_1;by sex age;retain i;
 if first.age then i=1;else i=i+1;
 run;
 
 proc sql;
-create table gq_2017_3 as select x.*
-from gq_2017_2 as x
+create table gq_baseyear_3 as select x.*
+from gq_baseyear_2 as x
 inner join p_1c as y on x.sex=y.sex and x.age=y.age
 where x.i<=y.d;
 quit;
-
 
 /*
 changing r from "Two or more" to "White" for 1 gq individual in a specific cohort
@@ -86,63 +73,46 @@ this is needed because DOF data has less people in that cohort
 */
 
 proc sql;
-update gq_2017_3 set r="R10";
+update gq_baseyear_3 set r="R10", r7="W";
 quit;
 
 
 proc sql;
-create table gq_2017_4 as select x.jur,coalesce(y.r,x.r) as r length=3,x.hisp,x.sex,x.age,x.dob,x.gq_type,x.gq_id
-from (select * from sql_est.gq_population where yr=2017) as x
-left join gq_2017_3 as y on x.gq_id=y.gq_id;
+create table gq_baseyear_4 as select x.jur,coalesce(y.r,x.r) as r length=3,coalesce(y.r7,x.r7) as r7 length=1
+,x.hisp,x.sex,x.age,x.gq_type,x.gq_id
+from (select * from gq_baseyear_0) as x
+left join gq_baseyear_3 as y on x.gq_id=y.gq_id and x.jur=y.jur;
 
 create table test_01 as select x.*
-from gq_2017_4 as x
-inner join gq_2017_3 as y on x.gq_id=y.gq_id;
+from gq_baseyear_4 as x
+inner join gq_baseyear_3 as y on x.gq_id=y.gq_id and x.jur=y.jur;
 
-/*create table sd.gq_2017 as select * from gq_2017_4;*/
 quit;
 
 
-
-
-
 proc sql;
-create table gq_base_n as select 
-case
-when hisp="H" then "H"
-when r="R10" then "W"
-when r="R02" then "B"
-when r="R03" then "I"
-when r="R04" then "S"
-when r="R05" then "P"
-when r="R06" then "M" /* Other becomes Multiple */
-when r="R07" then "M"
-end as r7
-,sex,age,count(gq_id) as gq
-from gq_2017_4 /*sd.gq_2017*/
+create table gq_base_n as select r7,sex,age,count(gq_id) as gq
+from gq_baseyear_4 
 group by r7,sex,age;
 
 create table p_1n as select x.yr
 ,coalesce(x.r7,y.r7) as r7
 ,coalesce(x.sex,y.sex) as sex
-,coalesce(x.age102,y.age) as age
+,coalesce(x.age101,y.age) as age
 ,x.p_cest as tp
 ,coalesce(y.gq,0) as gq
 ,x.p_cest - coalesce(y.gq,0) as hp
-from e1.Dof_pop_proj_r7_age102 as x
-full join gq_base_n as y on x.r7=y.r7 and x.sex=y.sex and x.age102=y.age
-where x.yr>2017;
+from e1.Dof_pop_proj_r7_age101 as x
+full join gq_base_n as y on x.r7=y.r7 and x.sex=y.sex and x.age101=y.age
+where x.yr > &by1;
 
 create table p_1n_a as select * from p_1n where tp=. or hp=.;
 create table p_1n_b as select * from p_1n where hp<0 order by yr,age;
 quit;
 
-
-
-
 /*
-Assume that gq pop in future years is exactly the same as in 2017 (1/1/2017)
-Subtract 2017 gq from DOF projections to get future hp
+Assume that gq pop in future years is exactly the same as in the base year 
+Subtract base year gq from DOF projections to get future hp
 Apply headship rates to hp to get hh
 */
 
@@ -180,6 +150,7 @@ create table hp_2c as select yr,sum(hp) as hp,sum(hh_a) as hh_a,sum(hh_b) as hh_
 from hp_2 group by yr;
 quit;
 
+/* Unsure if any of this DOF table is used but updated the vintage year in the query on 1/30/2020 */
 proc sql;
 CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
 
@@ -189,7 +160,7 @@ case when area_type="City" then area_name else summary_type end as Name
 from connection to odbc
 (
 select * FROM [socioec_data].[ca_dof].[population_housing_estimates]
-where county_name= 'San Diego' and vintage_yr = 2018 and est_yr >= 2017 and (area_type = 'City' or summary_type = 'Unincorporated')
+where county_name= 'San Diego' and vintage_yr = 2019 and est_yr >= 2017 and (area_type = 'City' or summary_type = 'Unincorporated')
 );
 
 DISCONNECT FROM odbc;
@@ -211,17 +182,24 @@ from dof_hu_1 group by yr;
 quit;
 
 
-
 proc sql;
 create table hp_3 as
 select yr,count(hp_id) as hp,count(distinct hh_id) as hh
-from sql_est.household_population where yr=2017 group by yr
-	union all
-select est_yr as yr,sum(hp) as hp,sum(hh) as hh 
-from dof_hh_0 where est_yr = 2018 group by yr
+from sql_est.household_population where yr in (2017,2018) group by yr
 	union all
 select yr,hp,hh_a as hh from hp_2c where yr>2018
 order by yr;
 quit;
 
+/* This outputs the target number of households and household population by year, which are used as inputs to determining the target housing units */
 proc export data=hp_3 outfile="T:\socioec\Current_Projects\&xver\input_data\HH_Initial_Estimate.xlsx" dbms=xlsx replace;sheet="HP_HH";run;
+
+proc sql;
+create table hu_1 as select yr,sto_flag,count(hu_id) as hu,count(hh_id) as hh, calculated hu - calculated hh as vac_hu
+from sql_est.housing_units where yr in (2017,2018) group by yr,sto_flag;
+
+create table hu_2 as select x.hu - y.hu as hu_g
+from hu_1 as x
+cross join hu_1 as y
+where x.yr=2018 and y.yr=2017 and x.sto_flag=0 and y.sto_flag=0;
+quit;

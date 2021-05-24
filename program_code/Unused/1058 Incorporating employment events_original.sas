@@ -1,11 +1,3 @@
-/*
-%let xver=xpef06;
-
-libname e1 "T:\socioec\Current_Projects\&xver\input_data";
-
-option notes;
-
-*/
 
 proc sql;
 CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
@@ -14,12 +6,8 @@ create table jb_0 as select *
 from connection to odbc
 (
 select x.job_id,x.sector_id,x.building_id,y.parcel_id
-FROM [urbansim].[urbansim]./*[job_by_sector_id]*/[job] /*[job_2016]*/ as x
-inner join [urbansim].[urbansim].[building] as y on x.building_id=y.building_id
-/*inner join [urbansim].[urbansim].[parcel] as z on y.parcel_id=z.parcel_id*/);
-
-/* chnaged over from [urbansim].[urbansim].[building_by_sector_id]*/
-
+FROM [urbansim].[urbansim].[job] as x
+inner join [urbansim].[urbansim].[building] as y on x.building_id=y.building_id);
 
 /* selecting buildings (points) that have job spaces
 then finding which jur-cpa they fall into */
@@ -36,18 +24,11 @@ left join (select building_id,count(job_id) as j from [urbansim].[urbansim].[job
 inner JOIN [estimates].[dbo].[BLK2010_JUR_POST2010] as z on x.centroid.STIntersects(z.shape) = 1
 )
 order by building_id;
-
-/* changed over from [urbansim].[urbansim].[building_by_sector_id]*/
-
 disconnect from odbc;
 
 update bld_location_0 set mgra = 14542 where parcel_id = 831901 and mgra=0;
 /* pier in Oceanside */
-
 quit;
-
-
-
 
 /*
 count job slots per building
@@ -86,26 +67,18 @@ disconnect from odbc;
 create table prc_location_0 as select x.*, y.mgra, y.jur_&by1
 from prc_location_01 as x
 left join prc_location_02 as y on x.parcel_id=y.parcel_id and x.building_id=y.building_id;
-
-
-/* changed over from [urbansim].[urbansim].[building_by_sector_id]*/
-
 update prc_location_0 set mgra = 14542 where parcel_id = 831901 and mgra=0;
 quit;
 
 
-
 /* parcel and other geo identifiers for existing jobs spaces */
-data prc_location_1(drop=jur_&by1);set prc_location_0;/* where mgra>0;by parcel_id; */
-/*if first.parcel_id;*/
+data prc_location_1(drop=jur_&by1);set prc_location_0;
 jur_id=int(jur_&by1/100);
 if jur_id in (14,19) then cpa_id=jur_&by1; else cpa_id=0;
 run;
 
 
-data e1.parcel_xref_base_jobs;set prc_location_1/*(drop=area)*/;run;
-
-
+data e1.parcel_xref_base_jobs;set prc_location_1;run;
 
 
 proc sql;
@@ -114,53 +87,33 @@ CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection
 create table dev_j_0 as select *
 from connection to odbc
 (
-SELECT x.siteid,x.compdate as yr
+SELECT x.siteid,year(coalesce(x.compdate_imputed,x.compdate)) as yr
 ,y.[parcel_id],y.[civemp_imputed] as j,y.[sector_id]
 ,z.mgra,z.jur_&by1
 ,y.shape.STIntersection(z.shape).STArea() as area
-FROM [urbansim].[ref].[non_res_sched_dev_sites_scs_v2] as x
-inner join [urbansim].[urbansim].[non_res_sched_dev_parcel_scs_2v2] as y on x.siteid=y.siteid
+FROM [urbansim].[ref].[scheduled_development_site] /*[spacecore].[GIS].[scheduled_development_sites]*/ as x
+inner join [urbansim].[urbansim].[scheduled_development_parcel] as y on x.siteid=y.site_id
 LEFT JOIN [estimates].[dbo].[BLK2010_JUR_POST2010] as z on y.shape.STIntersects(z.shape) = 1
-where y.civemp_imputed >0 and x.civemp >0
+where y.civemp_imputed >0 and x.civemp_imputed >0
 )
 order by siteid,parcel_id,mgra,yr,sector_id,area desc;
 
 disconnect from odbc;
 
-update dev_j_0 set sector_id = 7 where sector_id = . and siteid in (19020,19021);
-update dev_j_0 set mgra = 22520 where siteid = 19100; 
-update dev_j_0 set jur_2018 = 1900 where siteid = 19100;
+update dev_j_0 set sector_id = 17 where sector_id = . and siteid in (19000,19001);
 
 update dev_j_0 set yr = 2022 where yr = . and siteid in (4014);
 quit;
 
-proc sort data = dev_j_0; by siteid parcel_id descending area mgra yr sector_id;run; 
 
-data dev_j_0a; 
-set dev_j_0; 
-by siteid parcel_id descending area mgra yr sector_id; 
-if first.parcel_id then count = 0; 
-count + 1; 
-run; 
-
-proc sql; 
-create table dev_j_0b as 
-select siteid, yr, parcel_id, j, sector_id, mgra, jur_2018, area
-from dev_j_0a 
-where (count = 1 and siteid not in(19020,19021)) or (count in(1,4,7) and siteid = 19020) or (count in(1,2,3) and siteid = 19021)
-order by siteid, parcel_id, mgra; 
-quit; 
-
-proc sort data = dev_j_0b; by siteid parcel_id mgra yr sector_id;run; 
-
-data dev_j_1(drop=jur_&by1 area);set dev_j_0b;by siteid parcel_id mgra yr sector_id;
+data dev_j_1(drop=jur_&by1 area);set dev_j_0;by siteid parcel_id mgra yr sector_id;
 if first.sector_id;
 jur_id=int(jur_&by1/100);
 if jur_id in (14,19) then cpa_id=jur_&by1; else cpa_id=0;
 run;
 
 proc sql;
-create table test_01 as select * from dev_j_1 where yr=.; /*should be empty*/
+create table test_01 as select * from dev_j_1 where yr=.;
 quit;
 
 proc sql;
@@ -172,37 +125,23 @@ quit;
 proc sql;
 create table dev_j_1d as select yr,siteid,parcel_id,mgra,jur_id,cpa_id
 ,case
-/*when siteid = 12057 then 16 /* VA clinic */
+when siteid = 12057 then 16 /* VA clinic */
 when siteid = 14037 then 28 /* reclassified from 26; local gov */
-when siteid in(19020,19021) then 7 /*retail*/
 else sector_id end as sandag_industry_id
 ,case
 when siteid = 12057 then 2 /* federal gov */
 when siteid = 14037 then 4 /* local gov */
-when siteid in (19000,19001,19100) then 4 /* Tribal Casinos; local gov */
+when siteid in (19000,19001) then 4 /* Tribal Casinos; local gov */
 else 1 /* private */ end as type
 ,j
-from dev_j_1; 
-
-update dev_j_1d
-set jur_id = 19 where siteid = 19100; 
+from dev_j_1;
 quit;
-
-/*proc sort data=dev_j_1;by parcel_id sector_id yr;run;*/
 
 data bld_location_1(drop=jur_&by1);set bld_location_0;
 jur_id=int(jur_&by1/100);
 if jur_id in (14,19) then cpa_id=jur_&by1; else cpa_id=0;
 run;
 
-/*
-proc sql;
-create table bld_location_2 as select x.building_id,x.parcel_id,x.js,x.j,y.mgra,y.jur_id,y.cpa_id
-from bld_location_1 as x
-left join prc_location_1 as y on x.parcel_id=y.parcel_id
-order by building_id,parcel_id;
-quit;
-*/
 
 proc sql;
 create table bld_location_2 as select building_id,parcel_id,js,j,mgra,jur_id,cpa_id
@@ -224,12 +163,10 @@ when sector_id in (23,25) then 15 /* state and local education */
 when sector_id in (21,24,26) then 28 /* federal, state, and local public administration */
 else sector_id
 end as sandag_industry_id
-/* ,case when 200000000 <= x.job_id < 300000000 then "SE" else "WS" end as j_type */
 ,y.mgra,y.jur_id,y.cpa_id
 from jb_0 as x
 left join bld_location_2 as y on x.building_id=y.building_id;
 quit;
-
 
 /* base jobs */
 proc sql;
@@ -269,8 +206,8 @@ create table usj_1a as select yr,sum(j) as j
 from usj_1 group by yr;
 quit;
 
-/* additional college and military jobs */
 
+/* additional college and military jobs */
 proc sql;
 create table emp_colmil as select yr,mgra,jur_id,cpa_id,ct
 ,case when sector_id = 23 then 15 else sector_id end as sandag_industry_id
@@ -322,14 +259,9 @@ run;
 
 %let s = 6; /*spreading over s-1 years */
 data dev_j_2(rename=(j=jt));set dev_j_1e(rename=(yr=yr1));
-if yr1<2045 and mgra ne 22520 then yr2 = yr1 + (&s - 1); /*added in the mgra part of this clause so that Jamul would be built in one year*/
-else yr2 = yr1;
+if yr1<2045 then yr2 = yr1 + (&s - 1);else yr2 = yr1;
 do yr=yr1 to yr2;
 	j0 = ceil(j / &s);
-/*
-	ws = ceil(jt_ws / &s);
-	se = ceil(jt_se / &s);
-*/
 	output;
 end;
 run;
@@ -345,15 +277,6 @@ j1 = min(j0, (jt - jc));
 jc = jc + j1;
 end;
 run;
-
-/*update the table to add in the jobs that were dropped above*/
-proc sql; 
-update dev_j_3
-set j0 = j0+
-case when mgra = 22520 then 833
-else 0
-end; 
-quit; 
 
 proc sql;
 create table dev_j_4 as select yr,mgra,jur_id,cpa_id,sandag_industry_id,type
@@ -389,6 +312,7 @@ from dev_j_4 where yr <= 2045 group by mgra,jur_id,cpa_id,sandag_industry_id, ty
 select 2050 as yr,mgra,jur_id,cpa_id,sandag_industry_id, type, sum(j) as j
 from dev_j_4 where yr <= 2050 group by mgra,jur_id,cpa_id,sandag_industry_id, type;
 quit;
+
 
 proc sql;
 create table jb_2 as select x.yr,y.*
@@ -457,6 +381,7 @@ yr, sandag_industry_id, type
 ,sum(j2) as j2
 ,sum(jb+jc) as target
 from usj_5 group by yr, sandag_industry_id, type;
+
 quit;
 
 proc sql;
@@ -496,12 +421,6 @@ from usj_6 group by yr,sandag_industry_id,type
 order by sandag_industry_id,type,yr;
 quit;
 
-/*
-proc sql;
-create table usj_7 as
-select yr,sandag_industry_id,type,jc_drop from usj_6a where jc_drop > 0;
-quit;
-*/
 
 proc sql;
 create table jc_1 as
@@ -538,11 +457,6 @@ order by sandag_industry_id,type,id,yr;
 
 create table jc_5a as select sandag_industry_id,type,yr,count(*) as jc
 from jc_5 group by sandag_industry_id,type,yr;
-
-/*
-create table jc_5b as select sector_id,yr,count(*) as jc
-from jc_5 group by sector_id,yr;
-*/
 
 create table jc_5c as select yr,count(*) as jc
 from jc_5 group by yr;
@@ -603,24 +517,11 @@ select 2016 as yr,mgra,jur_id,cpa_id,sandag_industry_id,type
 ,jb as j_base /* jobs from base year */
 ,0 as j_capacity /* jobs FROM capacities (not capacity for jobs !!!) */
 ,0 as j_col_mil /* jobs from college and military expansion */
-,0 as j_dev_events /* jobs from development events */
+,0 as j_dev_events /* jobs from developmnet events */
 from usj_8 where yr = &by1;
 quit;
 
 data e1.job_events_parcels;set dev_j_1d;run;
-
-proc sql; 
-create table dev_j_1d_test as 
-select sum(j) as jobs from e1.job_events_parcels; 
-quit; 
-
-proc sql; 
-create table jobs_all_test as 
-select yr, sum(j) as j, sum(j_base) as j_base, sum(j_col_mil) as j_col_mil, sum(j_dev_events) as j_dev_events
-from e1.jobs_all
-group by yr; 
-quit; 
-
 
 proc sql;
 CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
@@ -641,62 +542,7 @@ else sector_id
 end as sandag_industry_id
 from connection to odbc
 (select x.job_id,x.sector_id,y.parcel_id FROM [urbansim].[urbansim].[job] /*[job_2016]*/ as x
-inner join [urbansim].[urbansim].[building] as y on x.building_id=y.building_id)
-;
-
-/* changed over from [urbansim].[urbansim].[building_by_sector_id] */
+inner join [urbansim].[urbansim].[building] as y on x.building_id=y.building_id);
 
 disconnect from odbc;
 quit;
-
-/* 
-
-proc sql;
-create table test_01 as select yr,sum(j) as j
-from e1.jobs_all
-group by yr;
-quit;
-
-proc sql; 
-create table test_001 as select yr, jur_id, sum(j) as j 
-from e1.jobs_all
-group by yr, jur_id
-order by yr, jur_id; 
-quit; 
-
-proc sql; 
-create table test_002 as select yr, mgra, sum(j) as j 
-from e1.jobs_all 
-where mgra in(3050,3093,3094) 
-group by yr, mgra
-order by mgra, yr;  
-quit; 
-
-proc sql; 
-create table test_003 as select yr, mgra, sandag_industry_id, sum(j) as j 
-from e1.jobs_all 
-where mgra in(3050,3093,3094) 
-group by yr, mgra, sandag_industry_id
-order by mgra, yr, sandag_industry_id;  
-quit; 
-
-
-proc sql; 
-create table test_004 as select yr, 
-CASE WHEN mgra = 3093 and sandag_industry_id in(22,27) and yr >= 2025 then mgra = 3050
-ELSE mgra
-END AS mgra_new, jur_id, cpa_id, 
-sandag_industry_id,
-type, 
-j, j_base, j_capacity, j_col_mil, j_dev_events
-from e1.jobs_all;
-quit; 
-
-proc sql; 
-create table test_005 as select yr, mgra_new, sandag_industry_id, sum(j) as j 
-from test_004 
-where mgra_new in(3050,3093) 
-group by yr, mgra_new, sandag_industry_id
-order by mgra_new, yr, sandag_industry_id;  
-quit; 
-*/

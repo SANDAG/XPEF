@@ -118,8 +118,8 @@ SELECT x.siteid,x.compdate as yr
 ,y.[parcel_id],y.[civemp_imputed] as j,y.[sector_id]
 ,z.mgra,z.jur_&by1
 ,y.shape.STIntersection(z.shape).STArea() as area
-FROM [urbansim].[ref].[non_res_sched_dev_sites_scs_v2] as x
-inner join [urbansim].[urbansim].[non_res_sched_dev_parcel_scs_2v2] as y on x.siteid=y.siteid
+FROM [urbansim].[ref].[non_res_sched_dev_sites_scs] as x
+inner join [urbansim].[urbansim].[non_res_sched_dev_parcel_scs_2] as y on x.siteid=y.site_id
 LEFT JOIN [estimates].[dbo].[BLK2010_JUR_POST2010] as z on y.shape.STIntersects(z.shape) = 1
 where y.civemp_imputed >0 and x.civemp >0
 )
@@ -127,9 +127,7 @@ order by siteid,parcel_id,mgra,yr,sector_id,area desc;
 
 disconnect from odbc;
 
-update dev_j_0 set sector_id = 7 where sector_id = . and siteid in (19020,19021);
-update dev_j_0 set mgra = 22520 where siteid = 19100; 
-update dev_j_0 set jur_2018 = 1900 where siteid = 19100;
+update dev_j_0 set sector_id = 17 where sector_id = . and siteid in (19000,19001);
 
 update dev_j_0 set yr = 2022 where yr = . and siteid in (4014);
 quit;
@@ -147,7 +145,7 @@ proc sql;
 create table dev_j_0b as 
 select siteid, yr, parcel_id, j, sector_id, mgra, jur_2018, area
 from dev_j_0a 
-where (count = 1 and siteid not in(19020,19021)) or (count in(1,4,7) and siteid = 19020) or (count in(1,2,3) and siteid = 19021)
+where (count = 1 and siteid <> 19020) or (count in(1,2,3,4) and siteid = 19020)
 order by siteid, parcel_id, mgra; 
 quit; 
 
@@ -172,20 +170,17 @@ quit;
 proc sql;
 create table dev_j_1d as select yr,siteid,parcel_id,mgra,jur_id,cpa_id
 ,case
-/*when siteid = 12057 then 16 /* VA clinic */
+when siteid = 12057 then 16 /* VA clinic */
 when siteid = 14037 then 28 /* reclassified from 26; local gov */
-when siteid in(19020,19021) then 7 /*retail*/
+/* when siteid in (19000,19001) then */
 else sector_id end as sandag_industry_id
 ,case
 when siteid = 12057 then 2 /* federal gov */
 when siteid = 14037 then 4 /* local gov */
-when siteid in (19000,19001,19100) then 4 /* Tribal Casinos; local gov */
+when siteid in (19000,19001) then 4 /* Tribal Casinos; local gov */
 else 1 /* private */ end as type
 ,j
-from dev_j_1; 
-
-update dev_j_1d
-set jur_id = 19 where siteid = 19100; 
+from dev_j_1;
 quit;
 
 /*proc sort data=dev_j_1;by parcel_id sector_id yr;run;*/
@@ -322,8 +317,7 @@ run;
 
 %let s = 6; /*spreading over s-1 years */
 data dev_j_2(rename=(j=jt));set dev_j_1e(rename=(yr=yr1));
-if yr1<2045 and mgra ne 22520 then yr2 = yr1 + (&s - 1); /*added in the mgra part of this clause so that Jamul would be built in one year*/
-else yr2 = yr1;
+if yr1<2045 then yr2 = yr1 + (&s - 1);else yr2 = yr1;
 do yr=yr1 to yr2;
 	j0 = ceil(j / &s);
 /*
@@ -345,15 +339,6 @@ j1 = min(j0, (jt - jc));
 jc = jc + j1;
 end;
 run;
-
-/*update the table to add in the jobs that were dropped above*/
-proc sql; 
-update dev_j_3
-set j0 = j0+
-case when mgra = 22520 then 833
-else 0
-end; 
-quit; 
 
 proc sql;
 create table dev_j_4 as select yr,mgra,jur_id,cpa_id,sandag_industry_id,type
@@ -603,7 +588,7 @@ select 2016 as yr,mgra,jur_id,cpa_id,sandag_industry_id,type
 ,jb as j_base /* jobs from base year */
 ,0 as j_capacity /* jobs FROM capacities (not capacity for jobs !!!) */
 ,0 as j_col_mil /* jobs from college and military expansion */
-,0 as j_dev_events /* jobs from development events */
+,0 as j_dev_events /* jobs from developmnet events */
 from usj_8 where yr = &by1;
 quit;
 
@@ -657,46 +642,4 @@ from e1.jobs_all
 group by yr;
 quit;
 
-proc sql; 
-create table test_001 as select yr, jur_id, sum(j) as j 
-from e1.jobs_all
-group by yr, jur_id
-order by yr, jur_id; 
-quit; 
-
-proc sql; 
-create table test_002 as select yr, mgra, sum(j) as j 
-from e1.jobs_all 
-where mgra in(3050,3093,3094) 
-group by yr, mgra
-order by mgra, yr;  
-quit; 
-
-proc sql; 
-create table test_003 as select yr, mgra, sandag_industry_id, sum(j) as j 
-from e1.jobs_all 
-where mgra in(3050,3093,3094) 
-group by yr, mgra, sandag_industry_id
-order by mgra, yr, sandag_industry_id;  
-quit; 
-
-
-proc sql; 
-create table test_004 as select yr, 
-CASE WHEN mgra = 3093 and sandag_industry_id in(22,27) and yr >= 2025 then mgra = 3050
-ELSE mgra
-END AS mgra_new, jur_id, cpa_id, 
-sandag_industry_id,
-type, 
-j, j_base, j_capacity, j_col_mil, j_dev_events
-from e1.jobs_all;
-quit; 
-
-proc sql; 
-create table test_005 as select yr, mgra_new, sandag_industry_id, sum(j) as j 
-from test_004 
-where mgra_new in(3050,3093) 
-group by yr, mgra_new, sandag_industry_id
-order by mgra_new, yr, sandag_industry_id;  
-quit; 
 */

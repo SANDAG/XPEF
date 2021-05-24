@@ -31,7 +31,7 @@ select
 x.parcel_id,x.shape.STArea() as parcel_area,x.mgra_id as mgra_p,x.block_id as blk_p,x.jurisdiction_id as jur_p
 ,case when v.parcel_id>0 then 1 else 0 end as hu_urb
 FROM urbansim.urbansim.parcel as x
-inner join (select distinct parcelid_2015 as parcel_id from [urbansim].[urbansim].[employment_capacity_scs_2]) as u on x.parcel_id=u.parcel_id /*changed table reference*/
+inner join (select distinct parcelid_2015 as parcel_id from [urbansim].[urbansim].[employment_capacity_scs]) as u on x.parcel_id=u.parcel_id /*changed table reference*/
 left join (select distinct parcel_id from [urbansim].[urbansim].[urbansim_lite_output] where run_id=&usver) as v on x.parcel_id=v.parcel_id 
 );
 
@@ -121,7 +121,7 @@ create table jcap_1 as select *
 from connection to odbc
 (
 select parcelid_2015,mgra,emp_2012 as j_2012,cap_emp_civ as jcap, cap_emp_civ2 as jcap2
-FROM [urbansim].[urbansim].[employment_capacity_scs_2] /*changed table reference*/
+FROM [urbansim].[urbansim].[employment_capacity_scs] /*changed table reference*/
 );
 
 create table lu_names as select *
@@ -314,7 +314,7 @@ run;
 proc sql;
 CONNECT TO odbc(noprompt="driver=SQL Server; server=sql2014a8;Trusted_Connection=yes;") ;
 
-create table mohub_mgra as select mgra, mohub, mohub_version_id, special_cap
+create table mohub_mgra as select mgra, mohub
 from connection to odbc
 (select * from urbansim.ref.scs_mgra_xref); /*changed to include the mohub mgras*/
 disconnect from odbc;
@@ -323,7 +323,7 @@ quit;
 proc sql; 
 create table mohub_mgra2 as 
 select mgra, mohub from mohub_mgra
-where  mohub_version_id = 2 and (mohub IS NOT NULL or special_cap = 1) 
+where mohub IS NOT NULL
 order by mgra; 
 quit; 
 
@@ -446,8 +446,8 @@ SELECT x.siteid,x.compdate as yr
 ,y.[parcel_id],y.[civemp_imputed] as j,y.[sector_id]
 ,z.mgra,z.jur_&by1
 ,y.shape.STIntersection(z.shape).STArea() as area
-FROM [urbansim].[ref].[non_res_sched_dev_sites_scs_v2] as x
-inner join [urbansim].[urbansim].[non_res_sched_dev_parcel_scs_2v2] as y on x.siteid=y.siteid
+FROM [urbansim].[ref].[non_res_sched_dev_sites_scs] as x
+inner join [urbansim].[urbansim].[non_res_sched_dev_parcel_scs_2] as y on x.siteid=y.site_id
 LEFT JOIN [estimates].[dbo].[BLK2010_JUR_POST2010] as z on y.shape.STIntersects(z.shape) = 1
 where y.civemp_imputed >0 and x.civemp >0
 )
@@ -473,7 +473,7 @@ proc sql;
 create table dev_j_0b as 
 select siteid, yr, parcel_id, j, sector_id, mgra, jur_2018, area
 from dev_j_0a 
-where (count = 1 and siteid not in(19020,19021,19100)) or (count in(1,2,3,4) and siteid in(19020,19021,19100))
+where (count = 1 and siteid <> 19020) or (count in(1,2,3,4) and siteid = 19020)
 order by siteid, parcel_id, mgra; 
 quit; 
 
@@ -1124,6 +1124,6 @@ select sum(slots_capacity) as sc, sum(slots_vacancy) as sv, sum(slots_cloned) as
 from job_slots_by_source; 
 quit; 
 
-data e1.jobs_from_capacities(replace=yes); set p_j_9;run;
+data e1.jobs_from_capacities; set p_j_9;run;
 
-data e1.job_slots_by_source(replace=yes); set job_slots_by_source;run;
+data e1.job_slots_by_source; set job_slots_by_source;run;
