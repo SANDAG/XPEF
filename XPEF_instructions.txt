@@ -1,0 +1,34 @@
+********************************* XPEF Documentation *********************************
+
+Go into the program_code folder and edit the '_ Variables and Libraries.sas' file.
+At the very least, make sure the 'xver' variable matches the name of the folder.
+
+If planning to update the estimates, you will need to update the other two variables.
+** This could cause errors elsewhere, so test that it works before running. **
+
+If you are going to run a 'reduced capacity' version (scripts 030, 035, 040, 045) be sure to set
+new version numbers before running. Otherwise it will overwrite the existing versions.
+
+Once urbansim_lite has been run and you have a new run_id, update that here as well.
+
+
+** If this is a new xpef version (folder name), you MUST run the following scripts: **
+'00. Preparing denormalized MGRA.sas' creates the schema in isam and adds the mgra file.
+'01. Preparing DOF Projections Data (age-race-sex).sas' prepares the DOF age/sex/ethnicity projections input file.
+'02. Load input data.sas' prepares several other key input files.
+The files produced by 01 and 02 shouldn't need to be updated each time, but running these scripts ensures the
+inputs are located in the correct place (if they were moved or removed). If they are not, the XPEF will error.
+
+** If you are running a reduced capacity version, you will need to run 030, 035, 040 and 045. **
+
+Next, run urbansim_lite (updating parameters as needed) and then put the run_id into the Variables script.
+
+** Finally, you can run '1010 Control Program.sas' - this will run all the other scripts. **
+The model will simulate every year from 2017-2050. Outputs for ABM are written for the following years:
+Standard: 2020, 2025, 2030, 2035, 2040, 2045, 2050
+Non-Standard: 2023, 2026, 2029, 2032
+
+If these files are all generated at the same time, they will have internal consistency within the synthetic
+persons and households files (ie. the synthetic people will match across years and age up appropriately).
+If they are not run at the same time, it is much more difficult (I do not know how) to recreate the same 
+synthetic persons and households for new years later.
